@@ -1,10 +1,12 @@
 package com.learnix.backend.service.application.impl;
 
 import com.learnix.backend.model.domain.Category;
-import com.learnix.backend.model.domain.Course;
+import com.learnix.backend.model.domain.User;
 import com.learnix.backend.model.dto.CreateCourseDto;
 import com.learnix.backend.model.dto.DisplayCourseDto;
 import com.learnix.backend.model.exceptions.CategoryNotFoundException;
+import com.learnix.backend.model.exceptions.UserNotFoundException;
+import com.learnix.backend.repository.UserRepository;
 import com.learnix.backend.service.application.CourseApplicationService;
 import com.learnix.backend.service.domain.CategoryService;
 import com.learnix.backend.service.domain.CourseService;
@@ -18,10 +20,16 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
 
     private final CourseService courseService;
     private final CategoryService categoryService;
+    private final UserRepository userRepository;
 
-    public CourseApplicationServiceImpl(CourseService courseService, CategoryService categoryService) {
+    public CourseApplicationServiceImpl(
+            CourseService courseService,
+            CategoryService categoryService,
+            UserRepository userRepository
+    ) {
         this.courseService = courseService;
         this.categoryService = categoryService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -41,7 +49,10 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
         Category category = categoryService
                 .findById(createCourseDto.categoryId())
                 .orElseThrow(() -> new CategoryNotFoundException(createCourseDto.categoryId()));
-        return DisplayCourseDto.from(courseService.create(createCourseDto.toCourse(category)));
+        User instructor = userRepository
+                .findById(createCourseDto.instructorId())
+                .orElseThrow(() -> new UserNotFoundException(createCourseDto.instructorId()));
+        return DisplayCourseDto.from(courseService.create(createCourseDto.toCourse(category, instructor)));
     }
 
     @Override
@@ -49,8 +60,11 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
         Category category = categoryService
                 .findById(createCourseDto.categoryId())
                 .orElseThrow(() -> new CategoryNotFoundException(createCourseDto.categoryId()));
+        User instructor = userRepository
+                .findById(createCourseDto.instructorId())
+                .orElseThrow(() -> new UserNotFoundException(createCourseDto.instructorId()));
         return courseService
-                .update(id, createCourseDto.toCourse(category))
+                .update(id, createCourseDto.toCourse(category, instructor))
                 .map(DisplayCourseDto::from);
     }
 

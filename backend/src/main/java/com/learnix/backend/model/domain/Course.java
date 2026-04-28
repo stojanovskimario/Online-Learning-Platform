@@ -2,7 +2,6 @@ package com.learnix.backend.model.domain;
 
 import com.learnix.backend.model.enums.CourseStatus;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,8 +13,9 @@ import lombok.Setter;
 @Table(name = "courses")
 public class Course extends BaseAuditableEntity {
 
-    @Column(nullable = false)
-    private Long instructorId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "instructor_id", nullable = false)
+    private User instructor;
 
     @Column(nullable = false)
     private String title;
@@ -35,9 +35,9 @@ public class Course extends BaseAuditableEntity {
     @Enumerated(EnumType.STRING)
     private CourseStatus status;
 
-    public Course(Long instructorId, String title, String description, String thumbnailUrl,
+    public Course(User instructor, String title, String description, String thumbnailUrl,
                   Category category, double price, boolean isPremium, CourseStatus status) {
-        this.instructorId = instructorId;
+        this.instructor = instructor;
         this.title = title;
         this.description = description;
         this.thumbnailUrl = thumbnailUrl;

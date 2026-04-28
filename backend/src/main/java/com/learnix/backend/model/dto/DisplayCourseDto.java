@@ -8,6 +8,8 @@ import java.util.List;
 public record DisplayCourseDto(
         Long id,
         Long instructorId,
+        String instructorUsername,
+        String instructorFullName,
         String title,
         String description,
         String thumbnailUrl,
@@ -18,9 +20,13 @@ public record DisplayCourseDto(
         CourseStatus status
 ) {
     public static DisplayCourseDto from(Course course) {
+        String instructorUsername = course.getInstructor() != null ? course.getInstructor().getUsername() : null;
+        String instructorFullName = UserDisplayNameHelper.getDisplayName(course.getInstructor());
         return new DisplayCourseDto(
                 course.getId(),
-                course.getInstructorId(),
+                course.getInstructor() != null ? course.getInstructor().getId() : null,
+                instructorUsername,
+                instructorFullName,
                 course.getTitle(),
                 course.getDescription(),
                 course.getThumbnailUrl(),

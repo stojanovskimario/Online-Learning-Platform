@@ -2,6 +2,7 @@ package com.learnix.backend.model.dto;
 
 import com.learnix.backend.model.domain.Category;
 import com.learnix.backend.model.domain.Course;
+import com.learnix.backend.model.domain.User;
 import com.learnix.backend.model.enums.CourseStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -25,9 +26,9 @@ public record CreateCourseDto(
         boolean isPremium,
         CourseStatus status
 ) {
-    public Course toCourse(Category category) {
+    public Course toCourse(Category category, User instructor) {
         return new Course(
-                instructorId,
+                instructor,
                 title,
                 description,
                 thumbnailUrl,
