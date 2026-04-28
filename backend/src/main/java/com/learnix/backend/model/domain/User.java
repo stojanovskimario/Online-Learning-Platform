@@ -16,6 +16,12 @@ public class User extends BaseAuditableEntity{
     @Column(nullable = false,unique = true)
     String username;
 
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
     @Column(name = "first_name")
     private String firstName;
 
