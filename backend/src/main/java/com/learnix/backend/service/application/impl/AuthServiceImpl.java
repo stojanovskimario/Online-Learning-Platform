@@ -32,13 +32,19 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponseDto register(RegisterRequestDto dto) {
         String email = normalizeEmail(dto.email());
+        String username = normalizeUsername(dto.username());
+        
         if (userService.findByEmail(email).isPresent()) {
             throw new RuntimeException("A user with email %s already exists.".formatted(email));
+        }
+        
+        if (userService.findByUsername(username).isPresent()) {
+            throw new RuntimeException("Username %s is already taken.".formatted(username));
         }
 
         User user = new User();
         user.setEmail(email);
-        user.setUsername(generateUsername(email));
+        user.setUsername(username);
         user.setPasswordHash(passwordEncoder.encode(dto.password()));
         user.setFirstName(dto.firstName());
         user.setLastName(dto.lastName());
@@ -69,18 +75,8 @@ public class AuthServiceImpl implements AuthService {
         return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 
-    private String generateUsername(String email) {
-        String localPart = email == null || !email.contains("@")
-                ? "user"
-                : email.substring(0, email.indexOf('@'));
-        String sanitized = localPart
-                .trim()
-                .toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9._-]", "_");
-        if (sanitized.isBlank()) {
-            sanitized = "user";
-        }
-        return sanitized + "_" + UUID.randomUUID().toString().substring(0, 8);
+    private String normalizeUsername(String username) {
+        return username == null ? null : username.trim().toLowerCase(Locale.ROOT);
     }
 }
 
