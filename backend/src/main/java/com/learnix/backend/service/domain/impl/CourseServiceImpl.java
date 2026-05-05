@@ -4,6 +4,8 @@ import com.learnix.backend.model.domain.Course;
 import com.learnix.backend.model.enums.CourseStatus;
 import com.learnix.backend.repository.CourseRepository;
 import com.learnix.backend.service.domain.CourseService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,8 +26,28 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public Page<Course> findAll(Pageable pageable) {
+        return courseRepository.findAll(pageable);
+    }
+
+    @Override
     public List<Course> findByStatus(CourseStatus status) {
         return courseRepository.findByStatus(status);
+    }
+
+    @Override
+    public Page<Course> findByStatus(CourseStatus status, Pageable pageable) {
+        return courseRepository.findByStatus(status, pageable);
+    }
+
+    @Override
+    public Page<Course> findByCategoryId(Long categoryId, Pageable pageable) {
+        return courseRepository.findByCategoryId(categoryId, pageable);
+    }
+
+    @Override
+    public Page<Course> findByCategoryIdAndStatus(Long categoryId, CourseStatus status, Pageable pageable) {
+        return courseRepository.findByCategoryIdAndStatus(categoryId, status, pageable);
     }
 
     @Override

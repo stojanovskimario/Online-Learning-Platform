@@ -12,6 +12,8 @@ import com.learnix.backend.security.UserSecurity;
 import com.learnix.backend.service.application.CourseApplicationService;
 import com.learnix.backend.service.domain.CategoryService;
 import com.learnix.backend.service.domain.CourseService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,9 +41,14 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
 
     @Override
     public List<DisplayCourseDto> findAll() {
-        return DisplayCourseDto.from(canViewDraftCourses()
-                ? courseService.findAll()
-                : courseService.findByStatus(CourseStatus.PUBLISHED));
+        return findAll(Pageable.unpaged(), null).getContent();
+    }
+
+    @Override
+    public Page<DisplayCourseDto> findAll(Pageable pageable, Long categoryId) {
+        return canViewDraftCourses()
+                ? findAllForPrivilegedUser(pageable, categoryId)
+                : findAllForStandardUser(pageable, categoryId);
     }
 
     @Override
@@ -87,6 +94,20 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
     public Optional<DisplayCourseDto> deleteById(Long id) {
         return courseService
                 .deleteById(id)
+                .map(DisplayCourseDto::from);
+    }
+
+    private Page<DisplayCourseDto> findAllForPrivilegedUser(Pageable pageable, Long categoryId) {
+        return (categoryId == null
+                ? courseService.findAll(pageable)
+                : courseService.findByCategoryId(categoryId, pageable))
+                .map(DisplayCourseDto::from);
+    }
+
+    private Page<DisplayCourseDto> findAllForStandardUser(Pageable pageable, Long categoryId) {
+        return (categoryId == null
+                ? courseService.findByStatus(CourseStatus.PUBLISHED, pageable)
+                : courseService.findByCategoryIdAndStatus(categoryId, CourseStatus.PUBLISHED, pageable))
                 .map(DisplayCourseDto::from);
     }
 
