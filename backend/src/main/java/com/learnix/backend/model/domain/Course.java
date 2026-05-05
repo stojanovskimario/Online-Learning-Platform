@@ -33,7 +33,8 @@ public class Course extends BaseAuditableEntity {
     private boolean isPremium;
 
     @Enumerated(EnumType.STRING)
-    private CourseStatus status;
+    @Column(nullable = false)
+    private CourseStatus status = CourseStatus.DRAFT;
 
     public Course(User instructor, String title, String description, String thumbnailUrl,
                   Category category, double price, boolean isPremium, CourseStatus status) {
@@ -44,6 +45,14 @@ public class Course extends BaseAuditableEntity {
         this.category = category;
         this.price = price;
         this.isPremium = isPremium;
-        this.status = status;
+        this.status = status == null ? CourseStatus.DRAFT : status;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void ensureDefaultStatus() {
+        if (status == null) {
+            status = CourseStatus.DRAFT;
+        }
     }
 }

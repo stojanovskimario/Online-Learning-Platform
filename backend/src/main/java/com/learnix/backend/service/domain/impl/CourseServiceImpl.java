@@ -1,6 +1,7 @@
 package com.learnix.backend.service.domain.impl;
 
 import com.learnix.backend.model.domain.Course;
+import com.learnix.backend.model.enums.CourseStatus;
 import com.learnix.backend.repository.CourseRepository;
 import com.learnix.backend.service.domain.CourseService;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,11 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public List<Course> findByStatus(CourseStatus status) {
+        return courseRepository.findByStatus(status);
+    }
+
+    @Override
     public Optional<Course> findById(Long id) {
         return courseRepository.findById(id);
     }
@@ -39,6 +45,14 @@ public class CourseServiceImpl implements CourseService {
             existingCourse.setDescription(course.getDescription());
             existingCourse.setCategory(course.getCategory());
             return courseRepository.save(existingCourse);
+        });
+    }
+
+    @Override
+    public Optional<Course> publish(Long id) {
+        return courseRepository.findById(id).map(course -> {
+            course.setStatus(CourseStatus.PUBLISHED);
+            return courseRepository.save(course);
         });
     }
 

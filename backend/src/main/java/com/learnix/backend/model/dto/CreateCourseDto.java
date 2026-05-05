@@ -3,7 +3,6 @@ package com.learnix.backend.model.dto;
 import com.learnix.backend.model.domain.Category;
 import com.learnix.backend.model.domain.Course;
 import com.learnix.backend.model.domain.User;
-import com.learnix.backend.model.enums.CourseStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -23,8 +22,7 @@ public record CreateCourseDto(
         Long categoryId,
         @PositiveOrZero(message = "The price cannot be negative.")
         double price,
-        boolean isPremium,
-        CourseStatus status
+        boolean isPremium
 ) {
     public Course toCourse(Category category, User instructor) {
         return new Course(
@@ -35,7 +33,7 @@ public record CreateCourseDto(
                 category,
                 price,
                 isPremium,
-                status == null ? CourseStatus.DRAFT : status
+                null
         );
     }
 }

@@ -15,5 +15,7 @@ public interface CourseApplicationService {
 
     Optional<DisplayCourseDto> update(Long id, CreateCourseDto createCourseDto);
 
+    Optional<DisplayCourseDto> publish(Long id);
+
     Optional<DisplayCourseDto> deleteById(Long id);
 }
