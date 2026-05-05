@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface AnswerOptionRepository extends JpaRepository<AnswerOption, Long> {
     List<AnswerOption> findByQuestionIdOrderByOrderIndexAsc(Long questionId);
+
+    List<AnswerOption> findByQuestionId(Long questionId);
 }

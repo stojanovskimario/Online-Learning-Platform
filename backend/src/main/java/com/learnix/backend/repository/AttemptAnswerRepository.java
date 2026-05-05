@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface AttemptAnswerRepository extends JpaRepository<AttemptAnswer, Long> {
     List<AttemptAnswer> findByQuizAttemptId(Long quizAttemptId);
+
+    List<AttemptAnswer> findByQuestionId(Long questionId);
+
+    boolean existsByQuestionId(Long questionId);
 }
