@@ -7,4 +7,8 @@ import java.util.List;
 
 public interface SectionRepository extends JpaRepository<Section, Long> {
     List<Section> findByCourseIdOrderByOrderIndexAsc(Long courseId);
+
+    boolean existsByCourseIdAndOrderIndex(Long courseId, Integer orderIndex);
+
+    boolean existsByCourseIdAndOrderIndexAndIdNot(Long courseId, Integer orderIndex, Long sectionId);
 }

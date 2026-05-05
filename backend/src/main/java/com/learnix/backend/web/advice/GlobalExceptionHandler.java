@@ -1,6 +1,11 @@
 package com.learnix.backend.web.advice;
 
 import com.learnix.backend.model.dto.error.ApiErrorResponse;
+import com.learnix.backend.model.exceptions.CourseNotFoundException;
+import com.learnix.backend.model.exceptions.LessonNotFoundException;
+import com.learnix.backend.model.exceptions.LessonOrderConflictException;
+import com.learnix.backend.model.exceptions.SectionNotFoundException;
+import com.learnix.backend.model.exceptions.SectionOrderConflictException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -27,6 +32,18 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiErrorResponse(HttpStatus.BAD_REQUEST.value(), message, null));
+    }
+
+    @ExceptionHandler({CourseNotFoundException.class, LessonNotFoundException.class, SectionNotFoundException.class})
+    public ResponseEntity<ApiErrorResponse> handleNotFound(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), null));
+    }
+
+    @ExceptionHandler({LessonOrderConflictException.class, SectionOrderConflictException.class})
+    public ResponseEntity<ApiErrorResponse> handleLessonConflict(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage(), null));
     }
 
     @ExceptionHandler(RuntimeException.class)
