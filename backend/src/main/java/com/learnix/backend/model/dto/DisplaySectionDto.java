@@ -8,14 +8,22 @@ public record DisplaySectionDto(
         Long id,
         Long courseId,
         String title,
-        Integer orderIndex
+        Integer orderIndex,
+        List<DisplayLessonDto> lessons
 ) {
     public static DisplaySectionDto from(Section section) {
+        List<DisplayLessonDto> lessons = section.getLessons() != null
+                ? section.getLessons().stream()
+                    .sorted((a, b) -> Integer.compare(a.getOrderIndex(), b.getOrderIndex()))
+                    .map(DisplayLessonDto::from)
+                    .toList()
+                : List.of();
         return new DisplaySectionDto(
                 section.getId(),
                 section.getCourse() != null ? section.getCourse().getId() : null,
                 section.getTitle(),
-                section.getOrderIndex()
+                section.getOrderIndex(),
+                lessons
         );
     }
 
@@ -25,4 +33,3 @@ public record DisplaySectionDto(
                 .toList();
     }
 }
-

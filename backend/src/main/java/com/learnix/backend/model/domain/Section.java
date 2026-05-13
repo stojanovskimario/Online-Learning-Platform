@@ -1,15 +1,12 @@
 package com.learnix.backend.model.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -32,4 +29,8 @@ public class Section extends BaseAuditableEntity {
 
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
+
+    @OneToMany(mappedBy = "section", fetch = FetchType.LAZY)
+    @OrderBy("orderIndex ASC")
+    private Set<Lesson> lessons;
 }

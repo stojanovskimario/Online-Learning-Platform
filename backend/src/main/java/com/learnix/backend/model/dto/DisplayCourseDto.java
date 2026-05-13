@@ -17,11 +17,18 @@ public record DisplayCourseDto(
         String categoryName,
         double price,
         boolean isPremium,
-        CourseStatus status
+        CourseStatus status,
+        List<DisplaySectionDto> sections
 ) {
     public static DisplayCourseDto from(Course course) {
         String instructorUsername = course.getInstructor() != null ? course.getInstructor().getUsername() : null;
         String instructorFullName = UserDisplayNameHelper.getDisplayName(course.getInstructor());
+        List<DisplaySectionDto> sections = course.getSections() != null
+                ? course.getSections().stream()
+                .sorted((a, b) -> Integer.compare(a.getOrderIndex(), b.getOrderIndex()))
+                .map(section -> DisplaySectionDto.from(section))
+                .toList()
+                : List.of();
         return new DisplayCourseDto(
                 course.getId(),
                 course.getInstructor() != null ? course.getInstructor().getId() : null,
@@ -34,7 +41,8 @@ public record DisplayCourseDto(
                 course.getCategory() != null ? course.getCategory().getName() : null,
                 course.getPrice(),
                 course.isPremium(),
-                course.getStatus()
+                course.getStatus(),
+                sections
         );
     }
 

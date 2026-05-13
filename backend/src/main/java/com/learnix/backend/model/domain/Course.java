@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+import java.util.Set;
+
 @Entity
 @Getter
 @Setter
@@ -35,6 +38,10 @@ public class Course extends BaseAuditableEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CourseStatus status = CourseStatus.DRAFT;
+
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
+    @OrderBy("orderIndex ASC")
+    private Set<Section> sections;
 
     public Course(User instructor, String title, String description, String thumbnailUrl,
                   Category category, double price, boolean isPremium, CourseStatus status) {

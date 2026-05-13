@@ -52,6 +52,7 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Optional<DisplayCourseDto> findById(Long id) {
         return courseService
                 .findById(id)
