@@ -3,16 +3,16 @@ export type SubscriptionTier = 'FREE' | 'PREMIUM_MONTHLY' | 'PREMIUM_ANNUAL'
 
 export interface User {
     id: number
-    username: string
+    username?: string
     email: string
-    firstName: string
-    lastName: string
+    firstName?: string
+    lastName?: string
     role: UserRole
     subscriptionTier: SubscriptionTier
 }
 
 export interface AuthResponse {
-    token: string
+    accessToken: string
     user: User
 }
 

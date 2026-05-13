@@ -34,7 +34,7 @@ const RegisterPage = () => {
     const mutation = useMutation({
         mutationFn: registerApi,
         onSuccess: (data) => {
-            dispatch(setCredentials({ user: data.user, token: data.token }))
+            dispatch(setCredentials({ user: data.user, token: data.accessToken }))
             navigate('/dashboard')
         },
     })

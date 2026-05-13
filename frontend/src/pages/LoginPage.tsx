@@ -27,7 +27,7 @@ const LoginPage = () => {
     const mutation = useMutation({
         mutationFn: loginApi,
         onSuccess: (data) => {
-            dispatch(setCredentials({ user: data.user, token: data.token }))
+            dispatch(setCredentials({ user: data.user, token: data.accessToken }))
             navigate('/dashboard')
         },
     })

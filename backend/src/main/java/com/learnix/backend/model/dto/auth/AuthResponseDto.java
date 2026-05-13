@@ -13,7 +13,10 @@ public record AuthResponseDto(
                 accessToken,
                 new UserSummary(
                         user.getId(),
+                        user.getUsername(),
                         user.getEmail(),
+                        user.getFirstName(),
+                        user.getLastName(),
                         user.getRole(),
                         user.getSubscriptionTier()
                 )
@@ -22,10 +25,12 @@ public record AuthResponseDto(
 
     public record UserSummary(
             Long id,
+            String username,
             String email,
+            String firstName,
+            String lastName,
             UserRole role,
             SubscriptionTier subscriptionTier
     ) {
     }
 }
-
