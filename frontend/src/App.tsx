@@ -4,6 +4,7 @@ import RegisterPage from '@/pages/RegisterPage'
 import DashboardPage from '@/pages/DashboardPage'
 import CoursesPage from '@/pages/CoursesPage'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import CourseDetailPage from '@/pages/CourseDetailPage'
 
 const App = () => {
     return (
@@ -24,6 +25,14 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <CoursesPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/courses/:id"
+                    element={
+                        <ProtectedRoute>
+                            <CourseDetailPage />
                         </ProtectedRoute>
                     }
                 />
