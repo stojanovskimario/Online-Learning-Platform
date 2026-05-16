@@ -1,88 +1,25 @@
-import { useQuery } from '@tanstack/react-query'
-import { useNavigate, Link } from 'react-router-dom'
-import { getCoursesApi } from '@/api/courses.api'
-import { useAuth } from '@/hooks/useAuth'
-
-const navItems = [
-    { label: 'Dashboard', icon: '⊞', path: '/dashboard' },
-    { label: 'My Courses', icon: '◎', path: '/courses/my' },
-    { label: 'Explore', icon: '◈', path: '/courses', active: true },
-    { label: 'Progress', icon: '◐', path: '/progress' },
-    { label: 'Quizzes', icon: '◇', path: '/quizzes' },
-    { label: 'Certificates', icon: '◉', path: '/certificates' },
-]
+import { useNavigate } from 'react-router-dom'
+import AppLayout from '@/components/AppLayout'
+import { useCourses } from '@/hooks/useCourses'
 
 const CoursesPage = () => {
-    const { user, logoutUser } = useAuth()
     const navigate = useNavigate()
 
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ['courses'],
-        queryFn: () => getCoursesApi(),
-    })
+    const { data, isLoading, isError } = useCourses()
 
-    const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || '?'
 
-    const handleLogout = () => {
-        logoutUser()
-        navigate('/login')
-    }
 
     return (
-        <div className="flex h-screen bg-[#0f1117] text-white overflow-hidden">
-            <aside className="w-56 flex-shrink-0 bg-[#13151f] border-r border-white/5 flex flex-col">
-                <div className="px-6 py-5 border-b border-white/5">
-          <span className="text-xl font-bold tracking-tight">
-            <span className="text-blue-400">Learn</span>ix
-          </span>
-                </div>
-
-                <nav className="flex-1 px-3 py-4 space-y-1">
-                    <p className="text-[10px] uppercase tracking-widest text-white/30 px-3 mb-2">Main</p>
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.label}
-                            to={item.path}
-                            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
-                                item.active
-                                    ? 'bg-blue-500/10 text-blue-400 font-medium'
-                                    : 'text-white/50 hover:text-white hover:bg-white/5'
-                            }`}
-                        >
-                            <span className="text-base">{item.icon}</span>
-                            {item.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                <div className="px-3 py-4 border-t border-white/5">
-                    <div className="flex items-center gap-3 px-3 py-2">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold">
-                            {initials}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{user?.firstName} {user?.lastName}</p>
-                            <p className="text-xs text-white/40 truncate">{user?.email}</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={handleLogout}
-                        className="w-full mt-2 text-xs text-white/30 hover:text-white/60 transition-colors text-left px-3 py-1"
-                    >
-                        Sign out →
-                    </button>
-                </div>
-            </aside>
-
-            <div className="flex-1 flex flex-col overflow-hidden">
+        <AppLayout
+            header={
                 <header className="bg-[#13151f] border-b border-white/5 px-8 py-4 flex items-center justify-between flex-shrink-0">
                     <div>
                         <h1 className="text-lg font-semibold text-white">Explore Courses</h1>
                         <p className="text-xs text-white/40">Browse and enrol in courses</p>
                     </div>
                 </header>
-
-                <main className="flex-1 overflow-y-auto px-8 py-6">
+            }
+        >
                     {isLoading && (
                         <div className="grid grid-cols-3 gap-4">
                             {[...Array(6)].map((_, i) => (
@@ -152,9 +89,7 @@ const CoursesPage = () => {
                             </div>
                         </>
                     )}
-                </main>
-            </div>
-        </div>
+        </AppLayout>
     )
 }
 
