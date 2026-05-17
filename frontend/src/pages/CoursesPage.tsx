@@ -12,7 +12,7 @@ const CoursesPage = () => {
     return (
         <AppLayout
             header={
-                <header className="bg-[#13151f] border-b border-white/5 px-8 py-4 flex items-center justify-between flex-shrink-0">
+                <header className="bg-[#13151f] border-b border-white/5 px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0">
                     <div>
                         <h1 className="text-lg font-semibold text-white">Explore Courses</h1>
                         <p className="text-xs text-white/40">Browse and enrol in courses</p>
@@ -21,7 +21,7 @@ const CoursesPage = () => {
             }
         >
                     {isLoading && (
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             {[...Array(6)].map((_, i) => (
                                 <div key={i} className="bg-[#13151f] border border-white/5 rounded-xl p-5 animate-pulse">
                                     <div className="h-32 bg-white/5 rounded-lg mb-4" />

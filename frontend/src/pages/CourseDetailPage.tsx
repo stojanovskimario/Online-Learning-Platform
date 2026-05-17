@@ -68,7 +68,7 @@ const CourseDetailPage = () => {
     return (
         <AppLayout
             header={
-                <header className="bg-[#13151f] border-b border-white/5 px-8 py-4 flex items-center gap-3 flex-shrink-0">
+                <header className="bg-[#13151f] border-b border-white/5 px-4 py-4 sm:px-6 lg:px-8 flex items-center gap-3 flex-shrink-0">
                     <button
                         onClick={() => navigate('/courses')}
                         className="text-white/30 hover:text-white text-sm transition-colors"
@@ -96,7 +96,7 @@ const CourseDetailPage = () => {
 
                     {course && (
                         <div className="max-w-3xl">
-                            <div className="flex items-start justify-between gap-6 mb-6">
+                            <div className="flex flex-col gap-5 mb-6 md:flex-row md:items-start md:justify-between md:gap-6">
                                 <div>
                                     <div className="flex items-center gap-2 mb-3">
                     <span className="text-xs bg-white/5 text-white/40 px-2 py-1 rounded">
@@ -112,7 +112,7 @@ const CourseDetailPage = () => {
                                     <p className="text-white/50 text-sm leading-relaxed">{course.description}</p>
                                 </div>
 
-                                <div className="bg-[#13151f] border border-white/5 rounded-xl p-5 flex-shrink-0 w-52 text-center">
+                                <div className="bg-[#13151f] border border-white/5 rounded-xl p-5 flex-shrink-0 w-full text-center md:w-52">
                                     <p className="text-2xl font-bold text-white mb-1">
                                         {course.price === 0 ? 'Free' : `$${course.price}`}
                                     </p>
@@ -131,7 +131,7 @@ const CourseDetailPage = () => {
 
                             {isEnrolled && (
                                 <div className="bg-[#13151f] border border-white/5 rounded-xl p-5 mb-6">
-                                    <div className="flex items-center justify-between gap-4 mb-3">
+                                    <div className="flex flex-col gap-2 mb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                                         <div>
                                             <h2 className="text-sm font-semibold text-white">Your Progress</h2>
                                             <p className="text-xs text-white/40 mt-1">
@@ -166,7 +166,7 @@ const CourseDetailPage = () => {
 
                                 {course.sections?.map((section, sIndex) => (
                                     <div key={section.id} className="border-b border-white/5 last:border-0">
-                                        <div className="px-6 py-4 flex items-center justify-between">
+                                        <div className="px-4 py-4 flex flex-col gap-2 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
                                             <div className="flex items-center gap-3">
                         <span className="text-xs text-white/20 font-mono">
                           {String(sIndex + 1).padStart(2, '0')}
@@ -187,7 +187,7 @@ const CourseDetailPage = () => {
                                                     }
                                                 }}
                                                 disabled={!isEnrolled && !(lIndex === 0 && sIndex === 0)}
-                                                className="w-full px-6 py-3 flex items-center gap-3 bg-white/[0.01] border-t border-white/5 text-left disabled:cursor-default enabled:hover:bg-white/[0.03] transition-colors"
+                                                className="w-full px-4 py-3 flex items-center gap-3 bg-white/[0.01] border-t border-white/5 text-left disabled:cursor-default enabled:hover:bg-white/[0.03] transition-colors sm:px-6"
                                             >
                         <span className="text-xs text-white/20 font-mono w-8">
                           {String(sIndex + 1)}.{lIndex + 1}

@@ -22,7 +22,7 @@ const ProgressPage = () => {
     return (
         <AppLayout
             header={
-                <header className="bg-[#13151f] border-b border-white/5 px-8 py-4 flex items-center justify-between flex-shrink-0">
+                <header className="bg-[#13151f] border-b border-white/5 px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0">
                     <div>
                         <h1 className="text-lg font-semibold text-white">Progress</h1>
                         <p className="text-xs text-white/40">Track your enrolled course completion</p>
@@ -73,7 +73,7 @@ const ProgressPage = () => {
                                 key={enrollment.id}
                                 className="bg-[#13151f] border border-white/5 rounded-xl p-5"
                             >
-                                <div className="flex items-start justify-between gap-4 mb-4">
+                                <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                                     <div>
                                         <h2 className="text-sm font-semibold text-white mb-1">{enrollment.courseTitle}</h2>
                                         <p className="text-xs text-white/40">

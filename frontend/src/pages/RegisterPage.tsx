@@ -66,7 +66,7 @@ const RegisterPage = () => {
                 </div>
             </div>
 
-            <div className="flex-1 flex items-center justify-center px-6 py-10">
+            <div className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6 sm:py-10">
                 <div className="w-full max-w-sm">
                     <div className="mb-8 lg:hidden">
             <span className="text-2xl font-bold tracking-tight">
@@ -78,7 +78,7 @@ const RegisterPage = () => {
                     <p className="text-white/40 text-sm mb-8">Free forever — upgrade anytime</p>
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="flex gap-3">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:gap-3">
                             <div className="flex-1">
                                 <label className="block text-xs font-medium text-white/50 mb-1.5">First Name</label>
                                 <input

@@ -11,7 +11,7 @@ const MyCoursesPage = () => {
     return (
         <AppLayout
             header={
-                <header className="bg-[#13151f] border-b border-white/5 px-8 py-4 flex items-center justify-between flex-shrink-0">
+                <header className="bg-[#13151f] border-b border-white/5 px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0">
                     <div>
                         <h1 className="text-lg font-semibold text-white">My Courses</h1>
                         <p className="text-xs text-white/40">Continue learning from your enrolled courses</p>

@@ -10,7 +10,12 @@ const navItems = [
     { label: 'Certificates', icon: '\u25c9', path: '/certificates' },
 ]
 
-const AppSidebar = () => {
+interface AppSidebarProps {
+    isOpen: boolean
+    onClose: () => void
+}
+
+const AppSidebar = ({ isOpen, onClose }: AppSidebarProps) => {
     const { user, logoutUser } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
@@ -24,18 +29,42 @@ const AppSidebar = () => {
 
     const isNavItemActive = (path: string) => {
         if (path === '/courses') {
-            return location.pathname === '/courses' || /^\/courses\/\d+$/.test(location.pathname)
+            return location.pathname === '/courses' || /^\/courses\/\d+(\/lessons\/\d+)?$/.test(location.pathname)
         }
 
         return location.pathname === path
     }
 
     return (
-        <aside className="w-56 flex-shrink-0 bg-[#13151f] border-r border-white/5 flex flex-col">
+        <>
+            {isOpen && (
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="fixed inset-0 z-30 bg-black/60 lg:hidden"
+                    aria-label="Close navigation"
+                />
+            )}
+
+            <aside
+                className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-shrink-0 flex-col border-r border-white/5 bg-[#13151f] transition-transform duration-200 lg:static lg:z-auto lg:w-56 lg:translate-x-0 ${
+                    isOpen ? 'translate-x-0' : '-translate-x-full'
+                }`}
+            >
             <div className="px-6 py-5 border-b border-white/5">
-                <span className="text-xl font-bold tracking-tight">
-                    <span className="text-blue-400">Learn</span>ix
-                </span>
+                <div className="flex items-center justify-between gap-3">
+                    <span className="text-xl font-bold tracking-tight">
+                        <span className="text-blue-400">Learn</span>ix
+                    </span>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="text-white/40 hover:text-white lg:hidden"
+                        aria-label="Close navigation"
+                    >
+                        ✕
+                    </button>
+                </div>
             </div>
 
             <nav className="flex-1 px-3 py-4 space-y-1">
@@ -44,6 +73,7 @@ const AppSidebar = () => {
                     <NavLink
                         key={item.label}
                         to={item.path}
+                        onClick={onClose}
                         className={() =>
                             `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
                                 isNavItemActive(item.path)
@@ -75,7 +105,8 @@ const AppSidebar = () => {
                     Sign out {'\u2192'}
                 </button>
             </div>
-        </aside>
+            </aside>
+        </>
     )
 }
 

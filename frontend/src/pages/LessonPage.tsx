@@ -33,7 +33,7 @@ const LessonPage = () => {
     return (
         <AppLayout
             header={
-                <header className="bg-[#13151f] border-b border-white/5 px-8 py-4 flex items-center gap-3 flex-shrink-0">
+                <header className="bg-[#13151f] border-b border-white/5 px-4 py-4 sm:px-6 lg:px-8 flex items-center gap-3 flex-shrink-0">
                     <button
                         onClick={() => navigate(`/courses/${courseId}`)}
                         className="text-white/30 hover:text-white text-sm transition-colors"
@@ -94,7 +94,7 @@ const LessonPage = () => {
                         </div>
                     )}
 
-                    <article className="bg-[#13151f] border border-white/5 rounded-xl p-6 whitespace-pre-wrap leading-7 text-sm text-white/70">
+                    <article className="bg-[#13151f] border border-white/5 rounded-xl p-4 whitespace-pre-wrap leading-7 text-sm text-white/70 sm:p-6">
                         {currentLesson.content}
                     </article>
 
@@ -121,7 +121,7 @@ const LessonPage = () => {
                         )}
                     </div>
 
-                    <div className="flex items-center justify-between gap-3 mt-6">
+                    <div className="flex flex-col gap-3 mt-6 sm:flex-row sm:items-center sm:justify-between">
                         <button
                             onClick={() => previousLesson && navigateToLesson(previousLesson.id)}
                             disabled={!previousLesson}

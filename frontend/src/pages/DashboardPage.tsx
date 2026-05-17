@@ -12,7 +12,7 @@ const DashboardPage = () => {
     return (
         <AppLayout
             header={
-                <header className="bg-[#13151f] border-b border-white/5 px-8 py-4 flex items-center justify-between flex-shrink-0">
+                <header className="bg-[#13151f] border-b border-white/5 px-4 py-4 sm:px-6 lg:px-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between flex-shrink-0">
                     <div>
                         <h1 className="text-lg font-semibold text-white">Dashboard</h1>
                         <p className="text-xs text-white/40">Welcome back, {user?.firstName}</p>
@@ -29,7 +29,7 @@ const DashboardPage = () => {
                 </header>
             }
         >
-                    <div className="grid grid-cols-4 gap-4 mb-8">
+                    <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 xl:grid-cols-4 xl:mb-8">
                         {[
                             { label: 'Enrolled Courses', value: '0', sub: 'courses active' },
                             { label: 'Completed', value: '0', sub: 'courses done' },
@@ -44,8 +44,8 @@ const DashboardPage = () => {
                         ))}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-6">
-                        <div className="col-span-2 bg-[#13151f] border border-white/5 rounded-xl p-6">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
+                        <div className="bg-[#13151f] border border-white/5 rounded-xl p-5 sm:p-6 lg:col-span-2">
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-sm font-semibold text-white">Active Courses</h2>
                                 <Link to="/courses" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
@@ -69,7 +69,7 @@ const DashboardPage = () => {
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-4 lg:gap-6">
                             <div className="bg-[#13151f] border border-white/5 rounded-xl p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-sm font-semibold text-white">Certificates</h2>
@@ -92,7 +92,7 @@ const DashboardPage = () => {
                     </div>
 
                     {user?.subscriptionTier === 'FREE' && (
-                        <div className="mt-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-5 flex items-center justify-between">
+                        <div className="mt-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <p className="text-xs text-blue-400 font-medium mb-1">✦ PREMIUM PLAN</p>
                                 <p className="text-sm font-semibold text-white">Unlock all courses & advanced features</p>
@@ -100,7 +100,7 @@ const DashboardPage = () => {
                             </div>
                             <Button
                                 size="sm"
-                                className="bg-blue-500 hover:bg-blue-600 text-white text-xs flex-shrink-0 ml-6"
+                                className="bg-blue-500 hover:bg-blue-600 text-white text-xs flex-shrink-0 sm:ml-6"
                                 onClick={() => navigate('/billing')}
                             >
                                 Upgrade to Premium →
