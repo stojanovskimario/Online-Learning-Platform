@@ -10,7 +10,7 @@ import java.util.List;
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
     List<Lesson> findBySectionIdOrderByOrderIndexAsc(Long sectionId);
 
-    List<Lesson> findBySection_Course_IdOrderByOrderIndexAsc(Long courseId);
+    List<Lesson> findBySection_Course_IdOrderBySection_OrderIndexAscOrderIndexAsc(Long courseId);
 
     boolean existsBySection_Course_IdAndOrderIndexAndIdNot(Long courseId, Integer orderIndex, Long lessonId);
 

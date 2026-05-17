@@ -42,7 +42,9 @@ public class LessonServiceImpl implements LessonService {
         courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
-        return DisplayLessonDto.from(lessonRepository.findBySection_Course_IdOrderByOrderIndexAsc(courseId));
+        return DisplayLessonDto.from(
+                lessonRepository.findBySection_Course_IdOrderBySection_OrderIndexAscOrderIndexAsc(courseId)
+        );
     }
 
     @Override

@@ -18,7 +18,7 @@ import java.util.Map;
 @Service
 public class JwtService {
 
-    private static final Duration TOKEN_EXPIRATION = Duration.ofMinutes(15);
+    private static final Duration TOKEN_EXPIRATION = Duration.ofMinutes(60);
 
     @Value("${jwt.secret}")
     private String secret;

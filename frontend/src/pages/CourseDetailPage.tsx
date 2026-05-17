@@ -23,6 +23,7 @@ const CourseDetailPage = () => {
         (acc, section) => acc + (section.lessons?.length ?? 0), 0
     ) ?? 0
     const isFreeCourse = course?.price === 0
+    const firstLesson = course?.sections?.flatMap((section) => section.lessons ?? [])[0]
 
     const renderEnrollmentAction = () => {
         if (isEnrollmentStatusLoading) {
@@ -39,7 +40,11 @@ const CourseDetailPage = () => {
         if (isEnrolled) {
             return (
                 <button
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() =>
+                        firstLesson
+                            ? navigate(`/courses/${id}/lessons/${firstLesson.id}`)
+                            : navigate('/dashboard')
+                    }
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
                 >
                     Continue Learning
@@ -148,9 +153,15 @@ const CourseDetailPage = () => {
                                         </div>
 
                                         {section.lessons?.map((lesson, lIndex) => (
-                                            <div
+                                            <button
                                                 key={lesson.id}
-                                                className="px-6 py-3 flex items-center gap-3 bg-white/[0.01] border-t border-white/5"
+                                                onClick={() => {
+                                                    if (isEnrolled || (lIndex === 0 && sIndex === 0)) {
+                                                        navigate(`/courses/${id}/lessons/${lesson.id}`)
+                                                    }
+                                                }}
+                                                disabled={!isEnrolled && !(lIndex === 0 && sIndex === 0)}
+                                                className="w-full px-6 py-3 flex items-center gap-3 bg-white/[0.01] border-t border-white/5 text-left disabled:cursor-default enabled:hover:bg-white/[0.03] transition-colors"
                                             >
                         <span className="text-xs text-white/20 font-mono w-8">
                           {String(sIndex + 1)}.{lIndex + 1}
@@ -161,7 +172,7 @@ const CourseDetailPage = () => {
                             Preview
                           </span>
                                                 )}
-                                            </div>
+                                            </button>
                                         ))}
                                     </div>
                                 ))}

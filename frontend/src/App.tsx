@@ -6,6 +6,7 @@ import CoursesPage from '@/pages/CoursesPage'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import CourseDetailPage from '@/pages/CourseDetailPage'
 import MyCoursesPage from '@/pages/MyCoursesPage'
+import LessonPage from '@/pages/LessonPage'
 
 const App = () => {
     return (
@@ -42,6 +43,14 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <CourseDetailPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/courses/:courseId/lessons/:lessonId"
+                    element={
+                        <ProtectedRoute>
+                            <LessonPage />
                         </ProtectedRoute>
                     }
                 />
