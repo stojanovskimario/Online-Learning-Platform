@@ -10,8 +10,3 @@ export const getCourseByIdApi = (id: number) =>
     axiosClient
         .get<Course>(`/api/courses/${id}`)
         .then((res) => res.data)
-
-export const enrollInCourseApi = (courseId: number) =>
-    axiosClient
-        .post(`/api/courses/${courseId}/enroll`)
-        .then((res) => res.data)

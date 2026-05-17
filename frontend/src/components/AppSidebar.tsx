@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 
 const navItems = [
@@ -13,12 +13,21 @@ const navItems = [
 const AppSidebar = () => {
     const { user, logoutUser } = useAuth()
     const navigate = useNavigate()
+    const location = useLocation()
 
     const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || '?'
 
     const handleLogout = () => {
         logoutUser()
         navigate('/login')
+    }
+
+    const isNavItemActive = (path: string) => {
+        if (path === '/courses') {
+            return location.pathname === '/courses' || /^\/courses\/\d+$/.test(location.pathname)
+        }
+
+        return location.pathname === path
     }
 
     return (
@@ -35,10 +44,9 @@ const AppSidebar = () => {
                     <NavLink
                         key={item.label}
                         to={item.path}
-                        end={item.path !== '/courses'}
-                        className={({ isActive }) =>
+                        className={() =>
                             `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
-                                isActive
+                                isNavItemActive(item.path)
                                     ? 'bg-blue-500/10 text-blue-400 font-medium'
                                     : 'text-white/50 hover:text-white hover:bg-white/5'
                             }`

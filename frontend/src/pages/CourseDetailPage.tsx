@@ -1,14 +1,14 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
 import AppLayout from '@/components/AppLayout'
 import { useCourse } from '@/hooks/useCourse'
 import { useEnrollInCourse } from '@/hooks/useEnrollInCourse'
+import { useEnrollmentStatus } from '@/hooks/useEnrollmentStatus'
 
 const CourseDetailPage = () => {
     const { id } = useParams<{ id: string }>()
-    const { user } = useAuth()
     const navigate = useNavigate()
     const { data: course, isLoading, isError } = useCourse(id)
+    const { data: isEnrolled, isLoading: isEnrollmentStatusLoading } = useEnrollmentStatus(id)
     const enrollMutation = useEnrollInCourse(id)
 
     const handleEnroll = () => {
@@ -22,6 +22,41 @@ const CourseDetailPage = () => {
     const totalLessons = course?.sections?.reduce(
         (acc, section) => acc + (section.lessons?.length ?? 0), 0
     ) ?? 0
+    const isFreeCourse = course?.price === 0
+
+    const renderEnrollmentAction = () => {
+        if (isEnrollmentStatusLoading) {
+            return (
+                <button
+                    disabled
+                    className="w-full bg-blue-500 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+                >
+                    Checking...
+                </button>
+            )
+        }
+
+        if (isEnrolled) {
+            return (
+                <button
+                    onClick={() => navigate('/dashboard')}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+                >
+                    Continue Learning
+                </button>
+            )
+        }
+
+        return (
+            <button
+                onClick={isFreeCourse ? handleEnroll : undefined}
+                disabled={!isFreeCourse || enrollMutation.isPending}
+                className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
+            >
+                {enrollMutation.isPending ? 'Enrolling...' : 'Enroll Now'}
+            </button>
+        )
+    }
 
     return (
         <AppLayout
@@ -77,29 +112,12 @@ const CourseDetailPage = () => {
                                     <p className="text-xs text-white/30 mb-4">
                                         {totalLessons} lessons · {course.sections?.length ?? 0} sections
                                     </p>
-                                    {course.isPremium && user?.subscriptionTier === 'FREE' ? (
-                                        <div>
-                                            <div className="bg-white/5 rounded-lg px-4 py-2.5 mb-3">
-                                                <p className="text-xs text-white/40">🔒 Premium course</p>
-                                            </div>
-                                            <button
-                                                onClick={() => navigate('/billing')}
-                                                className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
-                                            >
-                                                Upgrade to Enrol
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={handleEnroll}
-                                            disabled={enrollMutation.isPending}
-                                            className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
-                                        >
-                                            {enrollMutation.isPending ? 'Enrolling...' : 'Enrol Now'}
-                                        </button>
+                                    {renderEnrollmentAction()}
+                                    {!isFreeCourse && !isEnrolled && (
+                                        <p className="text-white/30 text-xs mt-2">Paid enrollment coming soon.</p>
                                     )}
                                     {enrollMutation.isError && (
-                                        <p className="text-red-400 text-xs mt-2">Already enrolled or error occurred.</p>
+                                        <p className="text-red-400 text-xs mt-2">Enrollment failed. Please try again.</p>
                                     )}
                                 </div>
                             </div>

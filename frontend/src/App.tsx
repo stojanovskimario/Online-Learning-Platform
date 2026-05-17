@@ -5,6 +5,7 @@ import DashboardPage from '@/pages/DashboardPage'
 import CoursesPage from '@/pages/CoursesPage'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import CourseDetailPage from '@/pages/CourseDetailPage'
+import MyCoursesPage from '@/pages/MyCoursesPage'
 
 const App = () => {
     return (
@@ -25,6 +26,14 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <CoursesPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/courses/my"
+                    element={
+                        <ProtectedRoute>
+                            <MyCoursesPage />
                         </ProtectedRoute>
                     }
                 />
