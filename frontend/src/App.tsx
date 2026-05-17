@@ -7,6 +7,7 @@ import ProtectedRoute from '@/components/ProtectedRoute'
 import CourseDetailPage from '@/pages/CourseDetailPage'
 import MyCoursesPage from '@/pages/MyCoursesPage'
 import LessonPage from '@/pages/LessonPage'
+import ProgressPage from '@/pages/ProgressPage'
 
 const App = () => {
     return (
@@ -51,6 +52,14 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <LessonPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/progress"
+                    element={
+                        <ProtectedRoute>
+                            <ProgressPage />
                         </ProtectedRoute>
                     }
                 />

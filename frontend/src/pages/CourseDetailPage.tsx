@@ -3,12 +3,14 @@ import AppLayout from '@/components/AppLayout'
 import { useCourse } from '@/hooks/useCourse'
 import { useEnrollInCourse } from '@/hooks/useEnrollInCourse'
 import { useEnrollmentStatus } from '@/hooks/useEnrollmentStatus'
+import { useCourseProgress } from '@/hooks/useCourseProgress'
 
 const CourseDetailPage = () => {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
     const { data: course, isLoading, isError } = useCourse(id)
     const { data: isEnrolled, isLoading: isEnrollmentStatusLoading } = useEnrollmentStatus(id)
+    const { data: courseProgress, isLoading: isCourseProgressLoading } = useCourseProgress(id, !!isEnrolled)
     const enrollMutation = useEnrollInCourse(id)
 
     const handleEnroll = () => {
@@ -126,6 +128,30 @@ const CourseDetailPage = () => {
                                     )}
                                 </div>
                             </div>
+
+                            {isEnrolled && (
+                                <div className="bg-[#13151f] border border-white/5 rounded-xl p-5 mb-6">
+                                    <div className="flex items-center justify-between gap-4 mb-3">
+                                        <div>
+                                            <h2 className="text-sm font-semibold text-white">Your Progress</h2>
+                                            <p className="text-xs text-white/40 mt-1">
+                                                {isCourseProgressLoading
+                                                    ? 'Loading progress...'
+                                                    : `${courseProgress?.completedLessons ?? 0} out of ${courseProgress?.totalLessons ?? totalLessons} completed lessons`}
+                                            </p>
+                                        </div>
+                                        <span className="text-sm font-semibold text-blue-400">
+                                            {Math.round(courseProgress?.percentage ?? 0)}%
+                                        </span>
+                                    </div>
+                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-blue-500 rounded-full transition-all"
+                                            style={{ width: `${courseProgress?.percentage ?? 0}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="bg-[#13151f] border border-white/5 rounded-xl overflow-hidden">
                                 <div className="px-6 py-4 border-b border-white/5">

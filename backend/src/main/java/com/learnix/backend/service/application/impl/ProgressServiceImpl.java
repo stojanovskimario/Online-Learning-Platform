@@ -76,6 +76,17 @@ public class ProgressServiceImpl implements ProgressService {
 
     @Override
     @Transactional(readOnly = true)
+    public LessonProgressDto getLessonProgress(Long userId, Long lessonId) {
+        lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new IllegalArgumentException("Lesson not found: " + lessonId));
+
+        return lessonProgressRepository.findByUserIdAndLessonId(userId, lessonId)
+                .map(LessonProgressDto::from)
+                .orElse(new LessonProgressDto(lessonId, userId, false, null));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public CourseProgressDto getCourseProgress(Long userId, Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found: " + courseId));

@@ -40,6 +40,17 @@ public class ProgressController {
         return ResponseEntity.ok(progressService.completeLesson(getCurrentUserId(), lessonId));
     }
 
+    @GetMapping("/progress/{lessonId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get lesson progress", description = "Returns whether the current authenticated user has completed the lesson.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lesson progress returned"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<LessonProgressDto> getLessonProgress(@PathVariable Long lessonId) {
+        return ResponseEntity.ok(progressService.getLessonProgress(getCurrentUserId(), lessonId));
+    }
+
     @GetMapping("/courses/{courseId}/progress")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get course progress", description = "Returns completed lesson count, total lessons, and percentage for the current authenticated user.")

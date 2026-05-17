@@ -6,6 +6,8 @@ import com.learnix.backend.model.dto.LessonProgressDto;
 public interface ProgressService {
     LessonProgressDto completeLesson(Long userId, Long lessonId);
 
+    LessonProgressDto getLessonProgress(Long userId, Long lessonId);
+
     CourseProgressDto getCourseProgress(Long userId, Long courseId);
 }
 

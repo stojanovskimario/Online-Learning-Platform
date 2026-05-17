@@ -3,12 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom'
 import AppLayout from '@/components/AppLayout'
 import { useCourse } from '@/hooks/useCourse'
 import { useCourseLessons } from '@/hooks/useCourseLessons'
+import { useLessonProgress } from '@/hooks/useLessonProgress'
+import { useCompleteLesson } from '@/hooks/useCompleteLesson'
 
 const LessonPage = () => {
     const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>()
     const navigate = useNavigate()
     const { data: course } = useCourse(courseId)
     const { data: lessons, isLoading, isError } = useCourseLessons(courseId)
+    const { data: lessonProgress, isLoading: isLessonProgressLoading } = useLessonProgress(lessonId)
+    const completeLessonMutation = useCompleteLesson(lessonId, courseId)
 
     const currentLessonIndex = useMemo(
         () => lessons?.findIndex((lesson) => lesson.id === Number(lessonId)) ?? -1,
@@ -93,6 +97,29 @@ const LessonPage = () => {
                     <article className="bg-[#13151f] border border-white/5 rounded-xl p-6 whitespace-pre-wrap leading-7 text-sm text-white/70">
                         {currentLesson.content}
                     </article>
+
+                    <div className="mt-6">
+                        <button
+                            onClick={() => completeLessonMutation.mutate()}
+                            disabled={
+                                isLessonProgressLoading ||
+                                lessonProgress?.completed ||
+                                completeLessonMutation.isPending
+                            }
+                            className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                        >
+                            {isLessonProgressLoading
+                                ? 'Checking completion...'
+                                : lessonProgress?.completed
+                                    ? 'Completed'
+                                    : completeLessonMutation.isPending
+                                        ? 'Marking complete...'
+                                        : 'Mark as Complete'}
+                        </button>
+                        {completeLessonMutation.isError && (
+                            <p className="text-red-400 text-xs mt-2">Could not mark lesson complete. Please try again.</p>
+                        )}
+                    </div>
 
                     <div className="flex items-center justify-between gap-3 mt-6">
                         <button
