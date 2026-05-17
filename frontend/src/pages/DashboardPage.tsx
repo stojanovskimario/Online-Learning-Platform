@@ -1,13 +1,53 @@
-import { useAuth } from '@/hooks/useAuth'
-import { useNavigate, Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
+import { useQueries } from '@tanstack/react-query'
+import { Link, useNavigate } from 'react-router-dom'
+import { getCourseProgressApi } from '@/api/progress.api'
 import AppLayout from '@/components/AppLayout'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/hooks/useAuth'
+import { useMyEnrollments } from '@/hooks/useMyEnrollments'
 
 const DashboardPage = () => {
     const { user } = useAuth()
     const navigate = useNavigate()
+    const { data: enrollments, isLoading: isEnrollmentsLoading, isError: isEnrollmentsError } = useMyEnrollments()
+    const activeEnrollments = enrollments?.filter((enrollment) => enrollment.status === 'ACTIVE') ?? []
 
+    const progressQueries = useQueries({
+        queries: activeEnrollments.map((enrollment) => ({
+            queryKey: ['course-progress', String(enrollment.courseId)],
+            queryFn: () => getCourseProgressApi(enrollment.courseId),
+        })),
+    })
 
+    const isProgressLoading = progressQueries.some((query) => query.isLoading)
+    const hasProgressError = progressQueries.some((query) => query.isError)
+    const enrollmentProgress = activeEnrollments.map((enrollment, index) => ({
+        enrollment,
+        progress: progressQueries[index]?.data,
+    }))
+    const completedCoursesCount = enrollmentProgress.filter(
+        ({ progress }) => progress && progress.percentage >= 100
+    ).length
+    const inProgressCourses = enrollmentProgress.filter(
+        ({ progress }) => !progress || progress.percentage < 100
+    )
+    const isDashboardDataLoading = isEnrollmentsLoading || isProgressLoading
+    const hasDashboardDataError = isEnrollmentsError || hasProgressError
+
+    const stats = [
+        {
+            label: 'Enrolled Courses',
+            value: isDashboardDataLoading ? '...' : String(activeEnrollments.length),
+            sub: activeEnrollments.length === 1 ? 'course active' : 'courses active',
+        },
+        {
+            label: 'Completed',
+            value: isDashboardDataLoading ? '...' : String(completedCoursesCount),
+            sub: completedCoursesCount === 1 ? 'course done' : 'courses done',
+        },
+        { label: 'Quizzes Passed', value: '0', sub: 'avg score -' },
+        { label: 'Certificates', value: '0', sub: 'earned' },
+    ]
 
     return (
         <AppLayout
@@ -18,95 +58,149 @@ const DashboardPage = () => {
                         <p className="text-xs text-white/40">Welcome back, {user?.firstName}</p>
                     </div>
                     <div className="flex items-center gap-3">
-            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                user?.subscriptionTier === 'FREE'
-                    ? 'bg-white/5 text-white/40'
-                    : 'bg-blue-500/20 text-blue-400'
-            }`}>
-              {user?.subscriptionTier === 'FREE' ? 'Free Plan' : 'Premium'}
-            </span>
+                        <span
+                            className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                user?.subscriptionTier === 'FREE'
+                                    ? 'bg-white/5 text-white/40'
+                                    : 'bg-blue-500/20 text-blue-400'
+                            }`}
+                        >
+                            {user?.subscriptionTier === 'FREE' ? 'Free Plan' : 'Premium'}
+                        </span>
                     </div>
                 </header>
             }
         >
-                    <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 xl:grid-cols-4 xl:mb-8">
-                        {[
-                            { label: 'Enrolled Courses', value: '0', sub: 'courses active' },
-                            { label: 'Completed', value: '0', sub: 'courses done' },
-                            { label: 'Quizzes Passed', value: '0', sub: 'avg score —' },
-                            { label: 'Certificates', value: '0', sub: 'earned' },
-                        ].map((stat) => (
-                            <div key={stat.label} className="bg-[#13151f] border border-white/5 rounded-xl p-5">
-                                <p className="text-xs text-white/40 mb-2">{stat.label}</p>
-                                <p className="text-3xl font-bold text-white mb-1">{stat.value}</p>
-                                <p className="text-xs text-white/30">{stat.sub}</p>
-                            </div>
-                        ))}
+            <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 xl:grid-cols-4 xl:mb-8">
+                {stats.map((stat) => (
+                    <div key={stat.label} className="bg-[#13151f] border border-white/5 rounded-xl p-5">
+                        <p className="text-xs text-white/40 mb-2">{stat.label}</p>
+                        <p className="text-3xl font-bold text-white mb-1">{stat.value}</p>
+                        <p className="text-xs text-white/30">{stat.sub}</p>
+                    </div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
+                <div className="bg-[#13151f] border border-white/5 rounded-xl p-5 sm:p-6 lg:col-span-2">
+                    <div className="flex items-center justify-between mb-5">
+                        <h2 className="text-sm font-semibold text-white">Active Courses</h2>
+                        <Link to="/courses/my" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                            View all
+                        </Link>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
-                        <div className="bg-[#13151f] border border-white/5 rounded-xl p-5 sm:p-6 lg:col-span-2">
-                            <div className="flex items-center justify-between mb-5">
-                                <h2 className="text-sm font-semibold text-white">Active Courses</h2>
-                                <Link to="/courses" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
-                                    Explore →
-                                </Link>
-                            </div>
-
-                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                                <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-2xl mb-4">
-                                    ◎
+                    {isDashboardDataLoading && (
+                        <div className="space-y-4">
+                            {[...Array(2)].map((_, index) => (
+                                <div key={index} className="animate-pulse">
+                                    <div className="h-4 bg-white/5 rounded mb-3 w-1/2" />
+                                    <div className="h-2 bg-white/5 rounded" />
                                 </div>
-                                <p className="text-sm font-medium text-white/60 mb-1">No courses yet</p>
-                                <p className="text-xs text-white/30 mb-4">Browse the catalogue and enrol in your first course</p>
-                                <Button
-                                    size="sm"
-                                    onClick={() => navigate('/courses')}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white text-xs"
-                                >
-                                    Browse Courses
-                                </Button>
-                            </div>
+                            ))}
                         </div>
+                    )}
 
-                        <div className="flex flex-col gap-4 lg:gap-6">
-                            <div className="bg-[#13151f] border border-white/5 rounded-xl p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-sm font-semibold text-white">Certificates</h2>
-                                    <Link to="/certificates" className="text-xs text-blue-400 hover:text-blue-300">View all →</Link>
-                                </div>
-                                <div className="text-center py-6">
-                                    <p className="text-3xl mb-2">◉</p>
-                                    <p className="text-xs text-white/30">No certificates yet</p>
-                                </div>
-                            </div>
-
-                            <div className="bg-[#13151f] border border-white/5 rounded-xl p-6">
-                                <h2 className="text-sm font-semibold text-white mb-4">Recent Quizzes</h2>
-                                <div className="text-center py-6">
-                                    <p className="text-3xl mb-2">◇</p>
-                                    <p className="text-xs text-white/30">No quizzes taken yet</p>
-                                </div>
-                            </div>
+                    {hasDashboardDataError && (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                            <p className="text-red-400 text-xs">Failed to load dashboard courses.</p>
                         </div>
-                    </div>
+                    )}
 
-                    {user?.subscriptionTier === 'FREE' && (
-                        <div className="mt-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <p className="text-xs text-blue-400 font-medium mb-1">✦ PREMIUM PLAN</p>
-                                <p className="text-sm font-semibold text-white">Unlock all courses & advanced features</p>
-                                <p className="text-xs text-white/40 mt-1">Unlimited quiz retakes, AI assistant, certificates — $9/mo</p>
+                    {!isDashboardDataLoading && !hasDashboardDataError && inProgressCourses.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                            <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-2xl mb-4">
+                                ◎
                             </div>
+                            <p className="text-sm font-medium text-white/60 mb-1">
+                                {activeEnrollments.length === 0 ? 'No courses yet' : 'All courses completed'}
+                            </p>
+                            <p className="text-xs text-white/30 mb-4">
+                                {activeEnrollments.length === 0
+                                    ? 'Browse the catalogue and enrol in your first course'
+                                    : 'Explore more courses to keep learning'}
+                            </p>
                             <Button
                                 size="sm"
-                                className="bg-blue-500 hover:bg-blue-600 text-white text-xs flex-shrink-0 sm:ml-6"
-                                onClick={() => navigate('/billing')}
+                                onClick={() => navigate('/courses')}
+                                className="bg-blue-500 hover:bg-blue-600 text-white text-xs"
                             >
-                                Upgrade to Premium →
+                                Explore Courses
                             </Button>
                         </div>
                     )}
+
+                    {!isDashboardDataLoading && !hasDashboardDataError && inProgressCourses.length > 0 && (
+                        <div className="space-y-4">
+                            {inProgressCourses.slice(0, 3).map(({ enrollment, progress }) => {
+                                const percentage = progress?.percentage ?? 0
+
+                                return (
+                                    <button
+                                        key={enrollment.id}
+                                        onClick={() => navigate(`/courses/${enrollment.courseId}`)}
+                                        className="w-full text-left"
+                                    >
+                                        <div className="flex items-center justify-between gap-3 mb-2">
+                                            <p className="text-sm font-medium text-white">{enrollment.courseTitle}</p>
+                                            <span className="text-xs text-blue-400">{Math.round(percentage)}%</span>
+                                        </div>
+                                        <p className="text-xs text-white/35 mb-2">
+                                            {progress?.completedLessons ?? 0} out of {progress?.totalLessons ?? 0} completed lessons
+                                        </p>
+                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-blue-500 rounded-full transition-all"
+                                                style={{ width: `${percentage}%` }}
+                                            />
+                                        </div>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex flex-col gap-4 lg:gap-6">
+                    <div className="bg-[#13151f] border border-white/5 rounded-xl p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-sm font-semibold text-white">Certificates</h2>
+                            <Link to="/certificates" className="text-xs text-blue-400 hover:text-blue-300">
+                                View all
+                            </Link>
+                        </div>
+                        <div className="text-center py-6">
+                            <p className="text-3xl mb-2">Certificates</p>
+                            <p className="text-xs text-white/30">No certificates yet</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#13151f] border border-white/5 rounded-xl p-6">
+                        <h2 className="text-sm font-semibold text-white mb-4">Recent Quizzes</h2>
+                        <div className="text-center py-6">
+                            <p className="text-3xl mb-2">Quizzes</p>
+                            <p className="text-xs text-white/30">No quizzes taken yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {user?.subscriptionTier === 'FREE' && (
+                <div className="mt-6 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p className="text-xs text-blue-400 font-medium mb-1">PREMIUM PLAN</p>
+                        <p className="text-sm font-semibold text-white">Unlock all courses & advanced features</p>
+                        <p className="text-xs text-white/40 mt-1">Unlimited quiz retakes, AI assistant, certificates - $9/mo</p>
+                    </div>
+                    <Button
+                        size="sm"
+                        className="bg-blue-500 hover:bg-blue-600 text-white text-xs flex-shrink-0 sm:ml-6"
+                        onClick={() => navigate('/billing')}
+                    >
+                        Upgrade to Premium
+                    </Button>
+                </div>
+            )}
         </AppLayout>
     )
 }
