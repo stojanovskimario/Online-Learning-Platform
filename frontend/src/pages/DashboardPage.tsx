@@ -1,16 +1,19 @@
 import { useQueries } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
+import { getCourseByIdApi } from '@/api/courses.api'
 import { getCourseProgressApi } from '@/api/progress.api'
 import AppLayout from '@/components/AppLayout'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { useMyEnrollments } from '@/hooks/useMyEnrollments'
+import { useResetCourseProgress } from '@/hooks/useResetCourseProgress'
 
 const DashboardPage = () => {
     const { user } = useAuth()
     const navigate = useNavigate()
     const { data: enrollments, isLoading: isEnrollmentsLoading, isError: isEnrollmentsError } = useMyEnrollments()
     const activeEnrollments = enrollments?.filter((enrollment) => enrollment.status === 'ACTIVE') ?? []
+    const resetProgressMutation = useResetCourseProgress()
 
     const progressQueries = useQueries({
         queries: activeEnrollments.map((enrollment) => ({
@@ -18,21 +21,25 @@ const DashboardPage = () => {
             queryFn: () => getCourseProgressApi(enrollment.courseId),
         })),
     })
+    const courseQueries = useQueries({
+        queries: activeEnrollments.map((enrollment) => ({
+            queryKey: ['course', String(enrollment.courseId)],
+            queryFn: () => getCourseByIdApi(enrollment.courseId),
+        })),
+    })
 
     const isProgressLoading = progressQueries.some((query) => query.isLoading)
+    const isCourseLoading = courseQueries.some((query) => query.isLoading)
     const hasProgressError = progressQueries.some((query) => query.isError)
+    const hasCourseError = courseQueries.some((query) => query.isError)
     const enrollmentProgress = activeEnrollments.map((enrollment, index) => ({
         enrollment,
         progress: progressQueries[index]?.data,
+        course: courseQueries[index]?.data,
     }))
-    const completedCoursesCount = enrollmentProgress.filter(
-        ({ progress }) => progress && progress.percentage >= 100
-    ).length
-    const inProgressCourses = enrollmentProgress.filter(
-        ({ progress }) => !progress || progress.percentage < 100
-    )
-    const isDashboardDataLoading = isEnrollmentsLoading || isProgressLoading
-    const hasDashboardDataError = isEnrollmentsError || hasProgressError
+    const completedCoursesCount = enrollmentProgress.filter(({ progress }) => progress && progress.percentage >= 100).length
+    const isDashboardDataLoading = isEnrollmentsLoading || isProgressLoading || isCourseLoading
+    const hasDashboardDataError = isEnrollmentsError || hasProgressError || hasCourseError
 
     const stats = [
         {
@@ -107,19 +114,11 @@ const DashboardPage = () => {
                         </div>
                     )}
 
-                    {!isDashboardDataLoading && !hasDashboardDataError && inProgressCourses.length === 0 && (
+                    {!isDashboardDataLoading && !hasDashboardDataError && activeEnrollments.length === 0 && (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-2xl mb-4">
-                                ◎
-                            </div>
-                            <p className="text-sm font-medium text-white/60 mb-1">
-                                {activeEnrollments.length === 0 ? 'No courses yet' : 'All courses completed'}
-                            </p>
-                            <p className="text-xs text-white/30 mb-4">
-                                {activeEnrollments.length === 0
-                                    ? 'Browse the catalogue and enrol in your first course'
-                                    : 'Explore more courses to keep learning'}
-                            </p>
+                            <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-2xl mb-4">◎</div>
+                            <p className="text-sm font-medium text-white/60 mb-1">No courses yet</p>
+                            <p className="text-xs text-white/30 mb-4">Browse the catalogue and enrol in your first course</p>
                             <Button
                                 size="sm"
                                 onClick={() => navigate('/courses')}
@@ -130,30 +129,62 @@ const DashboardPage = () => {
                         </div>
                     )}
 
-                    {!isDashboardDataLoading && !hasDashboardDataError && inProgressCourses.length > 0 && (
+                    {!isDashboardDataLoading && !hasDashboardDataError && activeEnrollments.length > 0 && (
                         <div className="space-y-4">
-                            {inProgressCourses.slice(0, 3).map(({ enrollment, progress }) => {
-                                const percentage = progress?.percentage ?? 0
+                            {enrollmentProgress.map(({ enrollment, progress, course }) => {
+                                const isCompleted = (progress?.percentage ?? 0) >= 100
+                                const firstLesson = course?.sections?.flatMap((section) => section.lessons ?? [])[0]
+                                const isRestarting = resetProgressMutation.isPending && resetProgressMutation.variables === enrollment.courseId
+
+                                const handleCourseAction = () => {
+                                    if (isCompleted) {
+                                        if (firstLesson) {
+                                            resetProgressMutation.mutate(enrollment.courseId, {
+                                                onSuccess: () => navigate(`/courses/${enrollment.courseId}/lessons/${firstLesson.id}`),
+                                            })
+                                            return
+                                        }
+
+                                        resetProgressMutation.mutate(enrollment.courseId, {
+                                            onSuccess: () => navigate(`/courses/${enrollment.courseId}`),
+                                        })
+                                        return
+                                    }
+
+                                    navigate(`/courses/${enrollment.courseId}`)
+                                }
 
                                 return (
                                     <button
                                         key={enrollment.id}
-                                        onClick={() => navigate(`/courses/${enrollment.courseId}`)}
-                                        className="w-full text-left"
+                                        onClick={handleCourseAction}
+                                        disabled={isRestarting}
+                                        className="w-full text-left disabled:opacity-60"
                                     >
                                         <div className="flex items-center justify-between gap-3 mb-2">
                                             <p className="text-sm font-medium text-white">{enrollment.courseTitle}</p>
-                                            <span className="text-xs text-blue-400">{Math.round(percentage)}%</span>
+                                            <span
+                                                className={`text-[10px] px-2 py-1 rounded-full font-medium ${
+                                                    isCompleted
+                                                        ? 'bg-emerald-500/15 text-emerald-400'
+                                                        : 'bg-blue-500/15 text-blue-400'
+                                                }`}
+                                            >
+                                                {isCompleted ? 'Completed' : 'Active'}
+                                            </span>
                                         </div>
                                         <p className="text-xs text-white/35 mb-2">
                                             {progress?.completedLessons ?? 0} out of {progress?.totalLessons ?? 0} completed lessons
                                         </p>
-                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden mb-3">
                                             <div
                                                 className="h-full bg-blue-500 rounded-full transition-all"
-                                                style={{ width: `${percentage}%` }}
+                                                style={{ width: `${progress?.percentage ?? 0}%` }}
                                             />
                                         </div>
+                                        <span className={`text-xs font-medium ${isCompleted ? 'text-emerald-400' : 'text-blue-400'}`}>
+                                            {isRestarting ? 'Restarting…' : isCompleted ? 'Restart Learning →' : 'Continue Learning →'}
+                                        </span>
                                     </button>
                                 )
                             })}

@@ -44,4 +44,7 @@ public class Question extends BaseAuditableEntity {
 
     @Column(name = "order_index", nullable = false)
     private Integer orderIndex;
+
+    @Column(name = "allows_multiple", nullable = false)
+    private boolean allowsMultiple = false;
 }

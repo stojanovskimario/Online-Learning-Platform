@@ -12,6 +12,7 @@ public record DisplayQuestionDto(
         String text,
         String explanation,
         Integer orderIndex,
+        boolean allowsMultiple,
         List<DisplayAnswerOptionDto> answerOptions
 ) {
     public static DisplayQuestionDto from(Question question, List<AnswerOption> answerOptions) {
@@ -21,6 +22,7 @@ public record DisplayQuestionDto(
                 question.getPrompt(),
                 question.getExplanation(),
                 question.getOrderIndex(),
+                question.isAllowsMultiple(),
                 DisplayAnswerOptionDto.from(answerOptions)
         );
     }

@@ -113,5 +113,29 @@ public class ProgressServiceImpl implements ProgressService {
         double percentage = totalLessons == 0 ? 0.0 : (completedLessons * 100.0) / totalLessons;
         return new CourseProgressDto(course.getId(), completedLessons, totalLessons, percentage);
     }
+
+    @Override
+    @Transactional
+    public CourseProgressDto resetCourseProgress(Long userId, Long courseId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new IllegalArgumentException("Course not found: " + courseId));
+
+        List<Section> sections = sectionRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+        Set<Long> lessonIds = new HashSet<>();
+        for (Section section : sections) {
+            List<Lesson> lessons = lessonRepository.findBySectionIdOrderByOrderIndexAsc(section.getId());
+            for (Lesson lesson : lessons) {
+                lessonIds.add(lesson.getId());
+            }
+        }
+
+        List<LessonProgress> progressToDelete = lessonProgressRepository.findByUserId(userId)
+                .stream()
+                .filter(progress -> lessonIds.contains(progress.getLesson().getId()))
+                .toList();
+        lessonProgressRepository.deleteAll(progressToDelete);
+
+        return new CourseProgressDto(course.getId(), 0, lessonIds.size(), 0.0);
+    }
 }
 

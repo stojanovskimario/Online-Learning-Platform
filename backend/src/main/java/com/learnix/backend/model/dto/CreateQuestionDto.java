@@ -18,6 +18,9 @@ public record CreateQuestionDto(
         String explanation,
         @NotNull(message = "The order index is required.")
         Integer orderIndex,
+        // true = render checkboxes and require ALL correct options selected
+        // false = render radio buttons (single answer only)
+        Boolean allowsMultiple,
         @NotEmpty(message = "At least two answer options are required.")
         List<@Valid CreateAnswerOptionDto> answerOptions
 ) {

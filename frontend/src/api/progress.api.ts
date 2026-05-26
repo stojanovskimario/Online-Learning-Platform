@@ -15,3 +15,9 @@ export const getCourseProgressApi = (courseId: number) =>
     axiosClient
         .get<CourseProgress>(`/api/courses/${courseId}/progress`)
         .then((res) => res.data)
+
+export const resetCourseProgressApi = (courseId: number) =>
+    axiosClient
+        .post<CourseProgress>(`/api/courses/${courseId}/progress/reset`)
+        .then((res) => res.data)
+

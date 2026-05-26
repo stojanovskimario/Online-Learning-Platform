@@ -16,6 +16,7 @@ import com.learnix.backend.model.exceptions.QuestionOrderConflictException;
 import com.learnix.backend.model.exceptions.QuizAlreadyExistsException;
 import com.learnix.backend.model.exceptions.QuizNotFoundException;
 import com.learnix.backend.model.exceptions.QuizSubmissionException;
+import com.learnix.backend.model.enums.QuestionType;
 import com.learnix.backend.repository.AnswerOptionRepository;
 import com.learnix.backend.repository.AttemptAnswerRepository;
 import com.learnix.backend.repository.LessonRepository;
@@ -133,6 +134,7 @@ public class QuizManagementServiceImpl implements QuizManagementService {
         question.setPrompt(createQuestionDto.text());
         question.setExplanation(createQuestionDto.explanation());
         question.setOrderIndex(createQuestionDto.orderIndex());
+        question.setAllowsMultiple(Boolean.TRUE.equals(createQuestionDto.allowsMultiple()));
 
         Question savedQuestion = questionRepository.save(question);
         List<AnswerOption> answerOptions = saveAnswerOptions(savedQuestion, createQuestionDto.answerOptions());
@@ -161,6 +163,7 @@ public class QuizManagementServiceImpl implements QuizManagementService {
         question.setPrompt(createQuestionDto.text());
         question.setExplanation(createQuestionDto.explanation());
         question.setOrderIndex(createQuestionDto.orderIndex());
+        question.setAllowsMultiple(Boolean.TRUE.equals(createQuestionDto.allowsMultiple()));
         questionRepository.save(question);
 
         if (answerOptionsChanged) {
@@ -190,10 +193,8 @@ public class QuizManagementServiceImpl implements QuizManagementService {
             throw new QuizSubmissionException("At least two answer options are required.");
         }
 
-        long correctAnswers = answerOptions.stream().filter(CreateAnswerOptionDto::correct).count();
-        if (correctAnswers != 1) {
-            throw new QuizSubmissionException("Each question must have exactly one correct answer.");
-        }
+        long correctCount = answerOptions.stream().filter(CreateAnswerOptionDto::correct).count();
+        boolean allowsMultiple = Boolean.TRUE.equals(createQuestionDto.allowsMultiple());
 
         Set<Integer> orderIndexes = answerOptions.stream()
                 .map(CreateAnswerOptionDto::orderIndex)
@@ -202,8 +203,23 @@ public class QuizManagementServiceImpl implements QuizManagementService {
             throw new QuizSubmissionException("Answer option order indexes must be unique.");
         }
 
-        if (createQuestionDto.type() == com.learnix.backend.model.enums.QuestionType.TRUE_FALSE && answerOptions.size() != 2) {
+        if (createQuestionDto.type() == QuestionType.TRUE_FALSE && answerOptions.size() != 2) {
             throw new QuizSubmissionException("True/false questions must have exactly two answer options.");
+        }
+
+        if (createQuestionDto.type() == QuestionType.TRUE_FALSE && allowsMultiple) {
+            throw new QuizSubmissionException("True/false questions cannot allow multiple selections.");
+        }
+
+        if (allowsMultiple) {
+            if (correctCount < 2) {
+                throw new QuizSubmissionException("Multi-select questions must have at least 2 correct answer options.");
+            }
+            if (correctCount >= answerOptions.size()) {
+                throw new QuizSubmissionException("Multi-select questions must have at least one incorrect answer option.");
+            }
+        } else if (correctCount != 1) {
+            throw new QuizSubmissionException("Each single-select question must have exactly one correct answer.");
         }
     }
 

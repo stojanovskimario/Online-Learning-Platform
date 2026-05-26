@@ -9,5 +9,7 @@ public interface ProgressService {
     LessonProgressDto getLessonProgress(Long userId, Long lessonId);
 
     CourseProgressDto getCourseProgress(Long userId, Long courseId);
+
+    CourseProgressDto resetCourseProgress(Long userId, Long courseId);
 }
 

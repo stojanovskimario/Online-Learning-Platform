@@ -1,0 +1,3 @@
+ALTER TABLE questions
+    ADD COLUMN allows_multiple BOOLEAN NOT NULL DEFAULT FALSE;
+

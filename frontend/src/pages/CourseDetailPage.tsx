@@ -5,6 +5,8 @@ import { useEnrollInCourse } from '@/hooks/useEnrollInCourse'
 import { useEnrollmentStatus } from '@/hooks/useEnrollmentStatus'
 import { useCourseProgress } from '@/hooks/useCourseProgress'
 
+const backendOrigin = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') ?? 'http://localhost:8080'
+
 const CourseDetailPage = () => {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
@@ -26,6 +28,9 @@ const CourseDetailPage = () => {
     ) ?? 0
     const isFreeCourse = course?.price === 0
     const firstLesson = course?.sections?.flatMap((section) => section.lessons ?? [])[0]
+    const thumbnailSrc = course?.thumbnailUrl?.startsWith('/')
+        ? `${backendOrigin}${course.thumbnailUrl}`
+        : course?.thumbnailUrl
 
     const renderEnrollmentAction = () => {
         if (isEnrollmentStatusLoading) {
@@ -98,6 +103,15 @@ const CourseDetailPage = () => {
                         <div className="max-w-3xl">
                             <div className="flex flex-col gap-5 mb-6 md:flex-row md:items-start md:justify-between md:gap-6">
                                 <div>
+                                    {thumbnailSrc && (
+                                        <div className="mb-4 overflow-hidden rounded-xl border border-white/5 bg-white/5">
+                                            <img
+                                                src={thumbnailSrc}
+                                                alt={course.title}
+                                                className="h-52 w-full object-cover"
+                                            />
+                                        </div>
+                                    )}
                                     <div className="flex items-center gap-2 mb-3">
                     <span className="text-xs bg-white/5 text-white/40 px-2 py-1 rounded">
                       {course.category?.name ?? 'General'}

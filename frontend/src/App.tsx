@@ -8,6 +8,9 @@ import CourseDetailPage from '@/pages/CourseDetailPage'
 import MyCoursesPage from '@/pages/MyCoursesPage'
 import LessonPage from '@/pages/LessonPage'
 import ProgressPage from '@/pages/ProgressPage'
+import QuizzesPage from '@/pages/QuizzesPage'
+import QuizPage from '@/pages/QuizPage'
+import QuizResultPage from '@/pages/QuizResultPage'
 
 const App = () => {
     return (
@@ -56,10 +59,34 @@ const App = () => {
                     }
                 />
                 <Route
+                    path="/courses/:courseId/lessons/:lessonId/quiz"
+                    element={
+                        <ProtectedRoute>
+                            <QuizPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/courses/:courseId/lessons/:lessonId/quiz/result"
+                    element={
+                        <ProtectedRoute>
+                            <QuizResultPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="/progress"
                     element={
                         <ProtectedRoute>
                             <ProgressPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/quizzes"
+                    element={
+                        <ProtectedRoute>
+                            <QuizzesPage />
                         </ProtectedRoute>
                     }
                 />

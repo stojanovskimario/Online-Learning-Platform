@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import AppLayout from '@/components/AppLayout'
 import { useCourses } from '@/hooks/useCourses'
 
+const backendOrigin = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') ?? 'http://localhost:8080'
+
 const CoursesPage = () => {
     const navigate = useNavigate()
 
@@ -50,42 +52,49 @@ const CoursesPage = () => {
                         <>
                             <p className="text-xs text-white/30 mb-4">{data.totalElements} courses available</p>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {data.content.map((course) => (
-                                    <div
-                                        key={course.id}
-                                        onClick={() => navigate(`/courses/${course.id}`)}
-                                        className="bg-[#13151f] border border-white/5 rounded-xl p-5 cursor-pointer hover:border-blue-500/30 hover:bg-white/[0.02] transition-all group"
-                                    >
-                                        <div className="h-32 bg-white/5 rounded-lg mb-4 flex items-center justify-center text-3xl">
-                                            {course.thumbnailUrl
-                                                ? <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover rounded-lg" />
-                                                : '◈'
-                                            }
-                                        </div>
+                                {data.content.map((course) => {
+                                    const thumbnailSrc = course.thumbnailUrl?.startsWith('/')
+                                        ? `${backendOrigin}${course.thumbnailUrl}`
+                                        : course.thumbnailUrl
 
-                                        <div className="flex items-start justify-between gap-2 mb-2">
-                                            <h3 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors leading-snug">
-                                                {course.title}
-                                            </h3>
-                                            {course.isPremium && (
-                                                <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-medium flex-shrink-0">
-                          PRO
-                        </span>
-                                            )}
-                                        </div>
+                                    return (
+                                        <div
+                                            key={course.id}
+                                            onClick={() => navigate(`/courses/${course.id}`)}
+                                            className="bg-[#13151f] border border-white/5 rounded-xl p-5 cursor-pointer hover:border-blue-500/30 hover:bg-white/[0.02] transition-all group"
+                                        >
+                                            <div className="h-32 bg-white/5 rounded-lg mb-4 flex items-center justify-center text-3xl overflow-hidden">
+                                                {thumbnailSrc ? (
+                                                    <img src={thumbnailSrc} alt={course.title} className="w-full h-full object-cover rounded-lg" />
+                                                ) : (
+                                                    '◈'
+                                                )}
+                                            </div>
 
-                                        <p className="text-xs text-white/40 mb-4 line-clamp-2">{course.description}</p>
+                                            <div className="flex items-start justify-between gap-2 mb-2">
+                                                <h3 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors leading-snug">
+                                                    {course.title}
+                                                </h3>
+                                                {course.isPremium && (
+                                                    <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-medium flex-shrink-0">
+                                                        PRO
+                                                    </span>
+                                                )}
+                                            </div>
 
-                                        <div className="flex items-center justify-between">
-                      <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded">
-                        {course.category?.name ?? 'General'}
-                      </span>
-                                            <span className="text-sm font-semibold text-white">
-                        {course.price === 0 ? 'Free' : `$${course.price}`}
-                      </span>
+                                            <p className="text-xs text-white/40 mb-4 line-clamp-2">{course.description}</p>
+
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded">
+                                                    {course.category?.name ?? 'General'}
+                                                </span>
+                                                <span className="text-sm font-semibold text-white">
+                                                    {course.price === 0 ? 'Free' : `$${course.price}`}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         </>
                     )}

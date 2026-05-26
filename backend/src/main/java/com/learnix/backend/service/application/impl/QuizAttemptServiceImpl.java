@@ -24,9 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -71,40 +71,56 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
             throw new QuizSubmissionException("Quiz %d has no questions.".formatted(quizId));
         }
 
-        Map<Long, Long> answers = submissionDto.answers();
+        Map<Long, List<Long>> answers = submissionDto.answers();
         Set<Long> questionIds = questions.stream().map(Question::getId).collect(Collectors.toSet());
-        if (answers == null || answers.size() != questionIds.size() || !answers.keySet().equals(questionIds)) {
+        if (answers == null || !answers.keySet().equals(questionIds)) {
             throw new QuizSubmissionException("You must answer every question exactly once.");
         }
 
         List<AttemptAnswer> attemptAnswers = new ArrayList<>();
         int correctAnswers = 0;
         for (Question question : questions) {
-            Long selectedAnswerId = answers.get(question.getId());
-            if (selectedAnswerId == null) {
+            List<Long> selectedIds = answers.get(question.getId());
+            if (selectedIds == null || selectedIds.isEmpty()) {
                 throw new QuizSubmissionException("You must answer every question exactly once.");
             }
-            AnswerOption selectedAnswer = answerOptionRepository.findById(selectedAnswerId)
-                    .orElseThrow(() -> new QuizSubmissionException(
-                            "Selected answer option %d does not exist.".formatted(selectedAnswerId)
-                    ));
-            if (!Objects.equals(selectedAnswer.getQuestion().getId(), question.getId())) {
-                throw new QuizSubmissionException("Selected answer option %d does not belong to question %d.".formatted(
-                        selectedAnswerId,
-                        question.getId()
-                ));
+
+            List<AnswerOption> allOptions = answerOptionRepository.findByQuestionId(question.getId());
+            Set<Long> allOptionIds = allOptions.stream().map(AnswerOption::getId).collect(Collectors.toSet());
+
+            for (Long selectedId : selectedIds) {
+                if (!allOptionIds.contains(selectedId)) {
+                    throw new QuizSubmissionException(
+                            "Answer option %d does not belong to question %d.".formatted(selectedId, question.getId()));
+                }
             }
 
-            boolean correct = selectedAnswer.isCorrect();
-            if (correct) {
+            if (!question.isAllowsMultiple() && selectedIds.size() > 1) {
+                throw new QuizSubmissionException(
+                        "Question %d does not allow multiple selections.".formatted(question.getId()));
+            }
+
+            Set<Long> correctIds = allOptions.stream()
+                    .filter(AnswerOption::isCorrect)
+                    .map(AnswerOption::getId)
+                    .collect(Collectors.toSet());
+            boolean questionCorrect = new HashSet<>(selectedIds).equals(correctIds);
+            if (questionCorrect) {
                 correctAnswers++;
             }
 
-            AttemptAnswer attemptAnswer = new AttemptAnswer();
-            attemptAnswer.setQuestion(question);
-            attemptAnswer.setAnswerOption(selectedAnswer);
-            attemptAnswer.setCorrect(correct);
-            attemptAnswers.add(attemptAnswer);
+            for (Long selectedId : selectedIds) {
+                AnswerOption option = allOptions.stream()
+                        .filter(o -> o.getId().equals(selectedId))
+                        .findFirst()
+                        .orElseThrow(() -> new QuizSubmissionException(
+                                "Answer option %d not found.".formatted(selectedId)));
+                AttemptAnswer attemptAnswer = new AttemptAnswer();
+                attemptAnswer.setQuestion(question);
+                attemptAnswer.setAnswerOption(option);
+                attemptAnswer.setCorrect(questionCorrect);
+                attemptAnswers.add(attemptAnswer);
+            }
         }
 
         int totalQuestions = questions.size();

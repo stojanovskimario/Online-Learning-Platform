@@ -62,6 +62,17 @@ public class ProgressController {
         return ResponseEntity.ok(progressService.getCourseProgress(getCurrentUserId(), courseId));
     }
 
+    @PostMapping("/courses/{courseId}/progress/reset")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Reset course progress", description = "Deletes the current authenticated user's lesson progress for the specified course.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Course progress reset"),
+            @ApiResponse(responseCode = "403", description = "Forbidden")
+    })
+    public ResponseEntity<CourseProgressDto> resetCourseProgress(@PathVariable Long courseId) {
+        return ResponseEntity.ok(progressService.resetCourseProgress(getCurrentUserId(), courseId));
+    }
+
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof User user) {
