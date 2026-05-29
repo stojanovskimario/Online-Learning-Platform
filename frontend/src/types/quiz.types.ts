@@ -37,5 +37,6 @@ export interface QuizAttemptResult {
     totalQuestions: number
     passed: boolean
     attemptedAt: string
+    passScore?: number
 }
 

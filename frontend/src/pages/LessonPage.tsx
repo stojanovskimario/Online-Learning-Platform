@@ -1,10 +1,9 @@
-import axios from 'axios'
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import AppLayout from '@/components/AppLayout'
 import { useCourse } from '@/hooks/useCourse'
 import { useCourseLessons } from '@/hooks/useCourseLessons'
-import { useQuiz } from '@/hooks/useQuiz'
+import { useCourseProgress } from '@/hooks/useCourseProgress'
 import { useLessonProgress } from '@/hooks/useLessonProgress'
 import { useCompleteLesson } from '@/hooks/useCompleteLesson'
 
@@ -13,23 +12,36 @@ const LessonPage = () => {
     const navigate = useNavigate()
     const { data: course } = useCourse(courseId)
     const { data: lessons, isLoading, isError } = useCourseLessons(courseId)
+    const { data: courseProgress } = useCourseProgress(courseId, !!courseId)
     const { data: lessonProgress, isLoading: isLessonProgressLoading } = useLessonProgress(lessonId)
-    const quizQuery = useQuiz(lessonId)
     const completeLessonMutation = useCompleteLesson(lessonId, courseId)
-    const is404QuizMissing = quizQuery.isError && axios.isAxiosError(quizQuery.error) && quizQuery.error.response?.status === 404
-    const showQuizUnavailable = quizQuery.isError && !is404QuizMissing
 
+    const orderedLessons = useMemo(() => {
+        const sectionOrderMap = new Map<number, number>()
+        ;(course?.sections ?? [])
+            .slice()
+            .sort((a, b) => a.orderIndex - b.orderIndex || a.id - b.id)
+            .forEach((section, index) => {
+                sectionOrderMap.set(section.id, index)
+            })
+
+        return [...(lessons ?? [])].sort((a, b) => {
+            const sectionOrderA = sectionOrderMap.get(a.sectionId) ?? Number.MAX_SAFE_INTEGER
+            const sectionOrderB = sectionOrderMap.get(b.sectionId) ?? Number.MAX_SAFE_INTEGER
+
+            return sectionOrderA - sectionOrderB || a.orderIndex - b.orderIndex || a.id - b.id
+        })
+    }, [course?.sections, lessons])
     const currentLessonIndex = useMemo(
-        () => lessons?.findIndex((lesson) => lesson.id === Number(lessonId)) ?? -1,
-        [lessonId, lessons]
+        () => orderedLessons.findIndex((lesson) => lesson.id === Number(lessonId)),
+        [lessonId, orderedLessons]
     )
 
-    const currentLesson = currentLessonIndex >= 0 ? lessons?.[currentLessonIndex] : undefined
-    const previousLesson = currentLessonIndex > 0 ? lessons?.[currentLessonIndex - 1] : undefined
-    const nextLesson =
-        lessons && currentLessonIndex >= 0 && currentLessonIndex < lessons.length - 1
-            ? lessons[currentLessonIndex + 1]
-            : undefined
+    const currentLesson = currentLessonIndex >= 0 ? orderedLessons[currentLessonIndex] : undefined
+    const previousLesson = currentLessonIndex > 0 ? orderedLessons[currentLessonIndex - 1] : undefined
+    const nextLesson = currentLessonIndex >= 0 && currentLessonIndex < orderedLessons.length - 1 ? orderedLessons[currentLessonIndex + 1] : undefined
+    const isFinalLesson = currentLessonIndex >= 0 && currentLessonIndex === orderedLessons.length - 1
+    const canTakeQuiz = isFinalLesson && ((lessonProgress?.completed ?? false) || (courseProgress?.percentage ?? 0) >= 100)
 
     const navigateToLesson = (targetLessonId: number) => {
         navigate(`/courses/${courseId}/lessons/${targetLessonId}`)
@@ -126,21 +138,6 @@ const LessonPage = () => {
                         )}
                     </div>
 
-                    {!quizQuery.isLoading && !quizQuery.isError && quizQuery.data && (
-                        <div className="mt-6">
-                            <button
-                                onClick={() => navigate(`/courses/${courseId}/lessons/${lessonId}/quiz`)}
-                                className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-                            >
-                                Take Quiz {'\u2192'}
-                            </button>
-                        </div>
-                    )}
-
-                    {showQuizUnavailable && (
-                        <p className="mt-4 text-xs text-white/40">Quiz unavailable right now.</p>
-                    )}
-
                     <div className="flex flex-col gap-3 mt-6 sm:flex-row sm:items-center sm:justify-between">
                         <button
                             onClick={() => previousLesson && navigateToLesson(previousLesson.id)}
@@ -149,13 +146,23 @@ const LessonPage = () => {
                         >
                             {'\u2190'} Previous Lesson
                         </button>
-                        <button
-                            onClick={() => nextLesson && navigateToLesson(nextLesson.id)}
-                            disabled={!nextLesson}
-                            className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-                        >
-                            Next Lesson {'\u2192'}
-                        </button>
+                        {isFinalLesson ? (
+                            <button
+                                onClick={() => navigate(`/courses/${courseId}/quiz`)}
+                                disabled={!canTakeQuiz}
+                                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                            >
+                                Take Quiz {'\u2192'}
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => nextLesson && navigateToLesson(nextLesson.id)}
+                                disabled={!nextLesson}
+                                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                            >
+                                Next Lesson {'\u2192'}
+                            </button>
+                        )}
                     </div>
                 </div>
             )}

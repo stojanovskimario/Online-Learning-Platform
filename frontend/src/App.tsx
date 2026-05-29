@@ -59,6 +59,22 @@ const App = () => {
                     }
                 />
                 <Route
+                    path="/courses/:courseId/quiz"
+                    element={
+                        <ProtectedRoute>
+                            <QuizPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/courses/:courseId/quiz/result"
+                    element={
+                        <ProtectedRoute>
+                            <QuizResultPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="/courses/:courseId/lessons/:lessonId/quiz"
                     element={
                         <ProtectedRoute>

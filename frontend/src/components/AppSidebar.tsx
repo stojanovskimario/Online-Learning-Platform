@@ -33,7 +33,10 @@ const AppSidebar = ({ isOpen, onClose }: AppSidebarProps) => {
         }
 
         if (path === '/quizzes') {
-            return location.pathname === '/quizzes' || /^\/courses\/\d+\/lessons\/\d+\/quiz(\/result)?$/.test(location.pathname)
+            return (
+                location.pathname === '/quizzes' ||
+                /^\/courses\/\d+\/(quiz|lessons\/\d+\/quiz)(\/result)?$/.test(location.pathname)
+            )
         }
 
         return location.pathname === path
