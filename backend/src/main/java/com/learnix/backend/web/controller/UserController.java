@@ -30,6 +30,13 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("Current user not found")));
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserProfileDto> getCurrentUser() {
+        return ResponseEntity.ok(userManagementService.findById(getCurrentUserId())
+                .orElseThrow(() -> new RuntimeException("Current user not found")));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or @userSecurity.isCurrentUser(#id)")
     public ResponseEntity<UserProfileDto> getUserById(@PathVariable Long id) {

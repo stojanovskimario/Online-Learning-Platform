@@ -11,6 +11,7 @@ import ProgressPage from '@/pages/ProgressPage'
 import QuizzesPage from '@/pages/QuizzesPage'
 import QuizPage from '@/pages/QuizPage'
 import QuizResultPage from '@/pages/QuizResultPage'
+import BillingPage from '@/pages/BillingPage'
 
 const App = () => {
     return (
@@ -95,6 +96,14 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <ProgressPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/billing"
+                    element={
+                        <ProtectedRoute>
+                            <BillingPage />
                         </ProtectedRoute>
                     }
                 />

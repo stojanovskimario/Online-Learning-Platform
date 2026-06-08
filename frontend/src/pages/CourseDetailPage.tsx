@@ -1,19 +1,25 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import AppLayout from '@/components/AppLayout'
 import { useCourse } from '@/hooks/useCourse'
 import { useEnrollInCourse } from '@/hooks/useEnrollInCourse'
 import { useEnrollmentStatus } from '@/hooks/useEnrollmentStatus'
 import { useCourseProgress } from '@/hooks/useCourseProgress'
+import type { RootState } from '@/store/store'
 
 const backendOrigin = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') ?? 'http://localhost:8080'
 
 const CourseDetailPage = () => {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
+    const { user } = useSelector((state: RootState) => state.auth)
     const { data: course, isLoading, isError } = useCourse(id)
     const { data: isEnrolled, isLoading: isEnrollmentStatusLoading } = useEnrollmentStatus(id)
     const { data: courseProgress, isLoading: isCourseProgressLoading } = useCourseProgress(id, !!isEnrolled)
     const enrollMutation = useEnrollInCourse(id)
+    const isPremiumUser = user?.subscriptionTier === 'PREMIUM_MONTHLY' || user?.subscriptionTier === 'PREMIUM_ANNUAL'
+    const premiumCourseUnlocked = !!course?.isPremium && isPremiumUser
+    const canEnrollInCourse = !course?.isPremium || isPremiumUser
 
     const handleEnroll = () => {
         enrollMutation.mutate(undefined, {
@@ -26,7 +32,6 @@ const CourseDetailPage = () => {
     const totalLessons = course?.sections?.reduce(
         (acc, section) => acc + (section.lessons?.length ?? 0), 0
     ) ?? 0
-    const isFreeCourse = course?.price === 0
     const firstLesson = course?.sections?.flatMap((section) => section.lessons ?? [])[0]
     const thumbnailSrc = course?.thumbnailUrl?.startsWith('/')
         ? `${backendOrigin}${course.thumbnailUrl}`
@@ -61,11 +66,11 @@ const CourseDetailPage = () => {
 
         return (
             <button
-                onClick={isFreeCourse ? handleEnroll : undefined}
-                disabled={!isFreeCourse || enrollMutation.isPending}
+                onClick={canEnrollInCourse ? handleEnroll : undefined}
+                disabled={!canEnrollInCourse || enrollMutation.isPending}
                 className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
             >
-                {enrollMutation.isPending ? 'Enrolling...' : 'Enroll Now'}
+                {enrollMutation.isPending ? 'Loading...' : canEnrollInCourse ? 'Enroll Now' : 'Premium only'}
             </button>
         )
     }
@@ -134,8 +139,8 @@ const CourseDetailPage = () => {
                                         {totalLessons} lessons · {course.sections?.length ?? 0} sections
                                     </p>
                                     {renderEnrollmentAction()}
-                                    {!isFreeCourse && !isEnrolled && (
-                                        <p className="text-white/30 text-xs mt-2">Paid enrollment coming soon.</p>
+                                    {course.isPremium && !isPremiumUser && !isEnrolled && (
+                                        <p className="text-white/30 text-xs mt-2">Upgrade to Premium to access this course.</p>
                                     )}
                                     {enrollMutation.isError && (
                                         <p className="text-red-400 text-xs mt-2">Enrollment failed. Please try again.</p>
@@ -178,8 +183,8 @@ const CourseDetailPage = () => {
                                     </div>
                                 )}
 
-                                {course.sections?.map((section, sIndex) => (
-                                    <div key={section.id} className="border-b border-white/5 last:border-0">
+                                    {course.sections?.map((section, sIndex) => (
+                                            <div key={section.id} className="border-b border-white/5 last:border-0">
                                         <div className="px-4 py-4 flex flex-col gap-2 sm:px-6 sm:flex-row sm:items-center sm:justify-between">
                                             <div className="flex items-center gap-3">
                         <span className="text-xs text-white/20 font-mono">
@@ -196,11 +201,11 @@ const CourseDetailPage = () => {
                                             <button
                                                 key={lesson.id}
                                                 onClick={() => {
-                                                    if (isEnrolled || (lIndex === 0 && sIndex === 0)) {
+                                                    if (isEnrolled || premiumCourseUnlocked || (lIndex === 0 && sIndex === 0)) {
                                                         navigate(`/courses/${id}/lessons/${lesson.id}`)
                                                     }
                                                 }}
-                                                disabled={!isEnrolled && !(lIndex === 0 && sIndex === 0)}
+                                                disabled={!isEnrolled && !premiumCourseUnlocked && !(lIndex === 0 && sIndex === 0)}
                                                 className="w-full px-4 py-3 flex items-center gap-3 bg-white/[0.01] border-t border-white/5 text-left disabled:cursor-default enabled:hover:bg-white/[0.03] transition-colors sm:px-6"
                                             >
                         <span className="text-xs text-white/20 font-mono w-8">

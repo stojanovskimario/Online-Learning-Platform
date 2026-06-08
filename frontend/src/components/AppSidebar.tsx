@@ -6,6 +6,7 @@ const navItems = [
     { label: 'My Courses', icon: '\u25ce', path: '/courses/my' },
     { label: 'Explore', icon: '\u25c8', path: '/courses' },
     { label: 'Progress', icon: '\u25d0', path: '/progress' },
+    { label: 'Billing', icon: '\u24b8', path: '/billing' },
     { label: 'Quizzes', icon: '\u25c7', path: '/quizzes' },
     { label: 'Certificates', icon: '\u25c9', path: '/certificates' },
 ]

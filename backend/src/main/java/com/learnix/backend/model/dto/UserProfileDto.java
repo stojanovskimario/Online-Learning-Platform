@@ -1,5 +1,6 @@
 package com.learnix.backend.model.dto;
 
+import com.learnix.backend.model.domain.User;
 import com.learnix.backend.model.enums.SubscriptionTier;
 import com.learnix.backend.model.enums.UserRole;
 
@@ -32,6 +33,21 @@ public class UserProfileDto {
         this.aiMessagesToday = aiMessagesToday;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public static UserProfileDto from(User user) {
+        return new UserProfileDto(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRole(),
+                user.getSubscriptionTier(),
+                user.getAiMessagesToday(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
     }
 
     public Long getId() {
