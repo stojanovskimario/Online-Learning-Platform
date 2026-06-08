@@ -12,6 +12,7 @@ import QuizzesPage from '@/pages/QuizzesPage'
 import QuizPage from '@/pages/QuizPage'
 import QuizResultPage from '@/pages/QuizResultPage'
 import BillingPage from '@/pages/BillingPage'
+import CreateCoursePage from './pages/CreateCoursePage'
 
 const App = () => {
     return (
@@ -104,6 +105,14 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <BillingPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/create-course"
+                    element={
+                        <ProtectedRoute allowedRoles={['INSTRUCTOR']}>
+                            <CreateCoursePage />
                         </ProtectedRoute>
                     }
                 />

@@ -5,12 +5,14 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAuth } from '@/hooks/useAuth'
 import { setCredentials } from '@/store/authSlice'
 import type { AppDispatch } from '@/store/store'
+import type { UserRole } from '@/types/user.types'
 
 interface Props {
     children: React.ReactNode
+    allowedRoles?: UserRole[]
 }
 
-const ProtectedRoute = ({ children }: Props) => {
+const ProtectedRoute = ({ children, allowedRoles }: Props) => {
     const dispatch = useDispatch<AppDispatch>()
     const { user, isAuthenticated } = useAuth()
     const currentUserQuery = useCurrentUser()
@@ -28,6 +30,10 @@ const ProtectedRoute = ({ children }: Props) => {
 
     if (!user && currentUserQuery.isLoading) {
         return <div className="min-h-screen bg-[#0f1117]" />
+    }
+
+    if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+        return <Navigate to="/dashboard" replace />
     }
 
     return <>{children}</>

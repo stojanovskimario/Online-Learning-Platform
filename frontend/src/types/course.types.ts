@@ -43,3 +43,12 @@ export interface PaginatedCourses {
     number: number
     size: number
 }
+
+export interface CreateCourseRequest {
+    title: string
+    description: string
+    thumbnailUrl?: string
+    categoryId: number
+    price: number
+    isPremium: boolean
+}

@@ -11,3 +11,9 @@ export interface PaginatedResponse<T> {
     number: number
     size: number
 }
+
+export interface ApiErrorResponse {
+    status: number
+    message: string
+    data: unknown | null
+}

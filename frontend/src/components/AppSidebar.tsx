@@ -1,16 +1,6 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 
-const navItems = [
-    { label: 'Dashboard', icon: '\u229e', path: '/dashboard' },
-    { label: 'My Courses', icon: '\u25ce', path: '/courses/my' },
-    { label: 'Explore', icon: '\u25c8', path: '/courses' },
-    { label: 'Progress', icon: '\u25d0', path: '/progress' },
-    { label: 'Billing', icon: '\u24b8', path: '/billing' },
-    { label: 'Quizzes', icon: '\u25c7', path: '/quizzes' },
-    { label: 'Certificates', icon: '\u25c9', path: '/certificates' },
-]
-
 interface AppSidebarProps {
     isOpen: boolean
     onClose: () => void
@@ -20,6 +10,16 @@ const AppSidebar = ({ isOpen, onClose }: AppSidebarProps) => {
     const { user, logoutUser } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
+    const navItems = [
+        { label: 'Dashboard', icon: '\u229e', path: '/dashboard' },
+        { label: 'My Courses', icon: '\u25ce', path: '/courses/my' },
+        { label: 'Explore', icon: '\u25c8', path: '/courses' },
+        { label: 'Progress', icon: '\u25d0', path: '/progress' },
+        { label: 'Billing', icon: '\u24b8', path: '/billing' },
+        { label: 'Quizzes', icon: '\u25c7', path: '/quizzes' },
+        { label: 'Certificates', icon: '\u25c9', path: '/certificates' },
+        ...(user?.role === 'INSTRUCTOR' ? [{ label: 'Create Course', icon: '+', path: '/create-course' }] : []),
+    ]
 
     const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || '?'
 

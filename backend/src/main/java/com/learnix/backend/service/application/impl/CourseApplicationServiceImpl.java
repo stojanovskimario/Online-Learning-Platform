@@ -6,12 +6,11 @@ import com.learnix.backend.model.dto.CreateCourseDto;
 import com.learnix.backend.model.dto.DisplayCourseDto;
 import com.learnix.backend.model.enums.CourseStatus;
 import com.learnix.backend.model.exceptions.CategoryNotFoundException;
-import com.learnix.backend.model.exceptions.UserNotFoundException;
-import com.learnix.backend.repository.UserRepository;
-import com.learnix.backend.security.UserSecurity;
 import com.learnix.backend.service.application.CourseApplicationService;
 import com.learnix.backend.service.domain.CategoryService;
 import com.learnix.backend.service.domain.CourseService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,19 +23,13 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
 
     private final CourseService courseService;
     private final CategoryService categoryService;
-    private final UserRepository userRepository;
-    private final UserSecurity userSecurity;
 
     public CourseApplicationServiceImpl(
             CourseService courseService,
-            CategoryService categoryService,
-            UserRepository userRepository,
-            UserSecurity userSecurity
+            CategoryService categoryService
     ) {
         this.courseService = courseService;
         this.categoryService = categoryService;
-        this.userRepository = userRepository;
-        this.userSecurity = userSecurity;
     }
 
     @Override
@@ -65,9 +58,7 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
         Category category = categoryService
                 .findById(createCourseDto.categoryId())
                 .orElseThrow(() -> new CategoryNotFoundException(createCourseDto.categoryId()));
-        User instructor = userRepository
-                .findById(createCourseDto.instructorId())
-                .orElseThrow(() -> new UserNotFoundException(createCourseDto.instructorId()));
+        User instructor = getCurrentUser();
         return DisplayCourseDto.from(courseService.create(createCourseDto.toCourse(category, instructor)));
     }
 
@@ -76,9 +67,7 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
         Category category = categoryService
                 .findById(createCourseDto.categoryId())
                 .orElseThrow(() -> new CategoryNotFoundException(createCourseDto.categoryId()));
-        User instructor = userRepository
-                .findById(createCourseDto.instructorId())
-                .orElseThrow(() -> new UserNotFoundException(createCourseDto.instructorId()));
+        User instructor = getCurrentUser();
         return courseService
                 .update(id, createCourseDto.toCourse(category, instructor))
                 .map(DisplayCourseDto::from);
@@ -113,6 +102,20 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
     }
 
     private boolean canViewDraftCourses() {
-        return userSecurity.isAdmin() || userSecurity.isInstructor();
+        return hasRole("ROLE_ADMIN") || hasRole("ROLE_INSTRUCTOR");
+    }
+
+    private boolean hasRole(String role) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(role));
+    }
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof User user) {
+            return user;
+        }
+        throw new RuntimeException("User not authenticated");
     }
 }

@@ -10,3 +10,4 @@ export const getCourseByIdApi = (id: number) =>
     axiosClient
         .get<Course>(`/api/courses/${id}`)
         .then((res) => res.data)
+
