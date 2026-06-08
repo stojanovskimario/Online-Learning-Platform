@@ -67,6 +67,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiErrorResponse> handleRuntime(RuntimeException ex) {
+        if ("You need a Premium subscription to enroll in this course.".equals(ex.getMessage())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ApiErrorResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage(), null));
+        }
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), null));
     }

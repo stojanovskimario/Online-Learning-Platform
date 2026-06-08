@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import axios from 'axios'
 import AppLayout from '@/components/AppLayout'
 import { useCourse } from '@/hooks/useCourse'
 import { useEnrollInCourse } from '@/hooks/useEnrollInCourse'
@@ -34,6 +35,9 @@ const CourseDetailPage = () => {
         (acc, section) => acc + (section.lessons?.length ?? 0), 0
     ) ?? 0
     const firstIncompleteLesson = getFirstIncompleteCourseLessonByCount(course, courseProgress?.completedLessons ?? 0)
+    const enrollmentErrorMessage = axios.isAxiosError(enrollMutation.error)
+        ? enrollMutation.error.response?.data?.message ?? 'Enrollment failed. Please try again.'
+        : 'Enrollment failed. Please try again.'
     const thumbnailSrc = course?.thumbnailUrl?.startsWith('/')
         ? `${backendOrigin}${course.thumbnailUrl}`
         : course?.thumbnailUrl
@@ -144,7 +148,7 @@ const CourseDetailPage = () => {
                                         <p className="text-white/30 text-xs mt-2">Upgrade to Premium to access this course.</p>
                                     )}
                                     {enrollMutation.isError && (
-                                        <p className="text-red-400 text-xs mt-2">Enrollment failed. Please try again.</p>
+                                        <p className="text-red-400 text-xs mt-2">{enrollmentErrorMessage}</p>
                                     )}
                                 </div>
                             </div>

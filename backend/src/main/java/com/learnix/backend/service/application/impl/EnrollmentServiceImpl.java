@@ -5,6 +5,7 @@ import com.learnix.backend.model.domain.Enrollment;
 import com.learnix.backend.model.domain.User;
 import com.learnix.backend.model.dto.EnrollmentDto;
 import com.learnix.backend.model.enums.EnrollmentStatus;
+import com.learnix.backend.model.enums.SubscriptionTier;
 import com.learnix.backend.repository.CourseRepository;
 import com.learnix.backend.repository.EnrollmentRepository;
 import com.learnix.backend.repository.UserRepository;
@@ -35,15 +36,19 @@ public class EnrollmentServiceImpl implements EnrollmentService {
 
     @Override
     public EnrollmentDto enrollUserInCourse(Long userId, Long courseId) {
-        if (enrollmentRepository.findByUserIdAndCourseId(userId, courseId).isPresent()) {
-            throw new RuntimeException("User is already enrolled in this course");
-        }
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
         
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));
+
+        if (!canUserEnrollInCourse(user, course)) {
+            throw new RuntimeException("You need a Premium subscription to enroll in this course.");
+        }
+
+        if (enrollmentRepository.findByUserIdAndCourseId(userId, courseId).isPresent()) {
+            throw new RuntimeException("User is already enrolled in this course");
+        }
 
         Enrollment enrollment = new Enrollment();
         enrollment.setUser(user);
@@ -130,5 +135,14 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                 enrollment.getCreatedAt(),
                 enrollment.getUpdatedAt()
         );
+    }
+
+    private boolean canUserEnrollInCourse(User user, Course course) {
+        if (!course.isPremium() && course.getPrice() <= 0) {
+            return true;
+        }
+
+        SubscriptionTier subscriptionTier = user.getSubscriptionTier();
+        return subscriptionTier == SubscriptionTier.PREMIUM_MONTHLY || subscriptionTier == SubscriptionTier.PREMIUM_ANNUAL;
     }
 }
