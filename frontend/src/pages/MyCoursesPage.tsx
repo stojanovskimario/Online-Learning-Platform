@@ -5,6 +5,7 @@ import { getCourseByIdApi } from '@/api/courses.api'
 import { getCourseProgressApi } from '@/api/progress.api'
 import { useMyEnrollments } from '@/hooks/useMyEnrollments'
 import { useResetCourseProgress } from '@/hooks/useResetCourseProgress'
+import { getFirstIncompleteCourseLessonByCount } from '@/lib/courseLessons'
 
 const MyCoursesPage = () => {
     const navigate = useNavigate()
@@ -81,7 +82,8 @@ const MyCoursesPage = () => {
                             const progress = progressQueries[index]?.data
                             const course = courseQueries[index]?.data
                             const isCompleted = (progress?.percentage ?? 0) >= 100
-                            const firstLesson = course?.sections?.flatMap((section) => section.lessons ?? [])[0]
+                            const firstLesson = getFirstIncompleteCourseLessonByCount(course, 0)
+                            const firstIncompleteLesson = getFirstIncompleteCourseLessonByCount(course, progress?.completedLessons ?? 0)
                             const isRestarting = resetProgressMutation.isPending && resetProgressMutation.variables === enrollment.courseId
 
                             const handleCourseAction = () => {
@@ -96,6 +98,11 @@ const MyCoursesPage = () => {
                                     resetProgressMutation.mutate(enrollment.courseId, {
                                         onSuccess: () => navigate(`/courses/${enrollment.courseId}`),
                                     })
+                                    return
+                                }
+
+                                if (firstIncompleteLesson) {
+                                    navigate(`/courses/${enrollment.courseId}/lessons/${firstIncompleteLesson.id}`)
                                     return
                                 }
 

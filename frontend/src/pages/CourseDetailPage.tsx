@@ -5,6 +5,7 @@ import { useCourse } from '@/hooks/useCourse'
 import { useEnrollInCourse } from '@/hooks/useEnrollInCourse'
 import { useEnrollmentStatus } from '@/hooks/useEnrollmentStatus'
 import { useCourseProgress } from '@/hooks/useCourseProgress'
+import { getFirstIncompleteCourseLessonByCount } from '@/lib/courseLessons'
 import type { RootState } from '@/store/store'
 
 const backendOrigin = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') ?? 'http://localhost:8080'
@@ -32,7 +33,7 @@ const CourseDetailPage = () => {
     const totalLessons = course?.sections?.reduce(
         (acc, section) => acc + (section.lessons?.length ?? 0), 0
     ) ?? 0
-    const firstLesson = course?.sections?.flatMap((section) => section.lessons ?? [])[0]
+    const firstIncompleteLesson = getFirstIncompleteCourseLessonByCount(course, courseProgress?.completedLessons ?? 0)
     const thumbnailSrc = course?.thumbnailUrl?.startsWith('/')
         ? `${backendOrigin}${course.thumbnailUrl}`
         : course?.thumbnailUrl
@@ -53,8 +54,8 @@ const CourseDetailPage = () => {
             return (
                 <button
                     onClick={() =>
-                        firstLesson
-                            ? navigate(`/courses/${id}/lessons/${firstLesson.id}`)
+                        firstIncompleteLesson
+                            ? navigate(`/courses/${id}/lessons/${firstIncompleteLesson.id}`)
                             : navigate('/dashboard')
                     }
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2.5 rounded-lg transition-colors"
