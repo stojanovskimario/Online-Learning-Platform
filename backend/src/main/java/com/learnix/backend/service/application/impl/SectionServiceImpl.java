@@ -65,5 +65,13 @@ public class SectionServiceImpl implements SectionService {
         existingSection.setOrderIndex(createSectionDto.orderIndex());
         return DisplaySectionDto.from(sectionRepository.save(existingSection));
     }
+
+
+    @Override
+    public void deleteSection(Long sectionId) {
+        Section section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new SectionNotFoundException(sectionId));
+        sectionRepository.delete(section);
+    }
 }
 

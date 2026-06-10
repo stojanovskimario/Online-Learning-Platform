@@ -9,6 +9,7 @@ import com.learnix.backend.model.dto.UpdateLessonDto;
 import com.learnix.backend.model.exceptions.CourseNotFoundException;
 import com.learnix.backend.model.exceptions.LessonNotFoundException;
 import com.learnix.backend.model.exceptions.LessonOrderConflictException;
+import com.learnix.backend.model.exceptions.SectionNotFoundException;
 import com.learnix.backend.repository.CourseRepository;
 import com.learnix.backend.repository.LessonRepository;
 import com.learnix.backend.repository.SectionRepository;
@@ -91,6 +92,15 @@ public class LessonServiceImpl implements LessonService {
         Lesson lesson = lessonRepository.findById(lessonId)
                 .orElseThrow(() -> new LessonNotFoundException(lessonId));
         lessonRepository.delete(lesson);
+    }
+
+    @Override
+    public DisplayLessonDto createLessonInSection(Long sectionId, CreateLessonDto createLessonDto) {
+        Section section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new SectionNotFoundException(sectionId));
+
+        Lesson lesson = createLessonDto.toLesson(section);
+        return DisplayLessonDto.from(lessonRepository.save(lesson));
     }
 }
 

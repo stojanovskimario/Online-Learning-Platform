@@ -13,6 +13,7 @@ import QuizPage from '@/pages/QuizPage'
 import QuizResultPage from '@/pages/QuizResultPage'
 import BillingPage from '@/pages/BillingPage'
 import CreateCoursePage from './pages/CreateCoursePage'
+import CourseEditorPage from '@/pages/CourseEditorPage'
 
 const App = () => {
     return (
@@ -121,6 +122,14 @@ const App = () => {
                     element={
                         <ProtectedRoute>
                             <QuizzesPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/courses/:id/edit"
+                    element={
+                        <ProtectedRoute allowedRoles={['INSTRUCTOR', 'ADMIN']}>
+                            <CourseEditorPage />
                         </ProtectedRoute>
                     }
                 />

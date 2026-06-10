@@ -10,13 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -73,5 +67,20 @@ public class SectionController {
     ) {
         return ResponseEntity.ok(sectionService.updateSection(sectionId, createSectionDto));
     }
+
+    @DeleteMapping("/sections/{sectionId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('INSTRUCTOR')")
+    @Operation(summary = "Delete a section", description = "Deletes a section and all its lessons.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Section deleted"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Section not found")
+    })
+    public ResponseEntity<Void> deleteSection(@PathVariable Long sectionId) {
+        sectionService.deleteSection(sectionId);
+        return ResponseEntity.noContent().build();
+    }
 }
+
+
 

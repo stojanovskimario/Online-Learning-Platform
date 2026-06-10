@@ -88,5 +88,22 @@ public class LessonController {
         lessonService.deleteLesson(lessonId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/sections/{sectionId}/lessons")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('INSTRUCTOR')")
+    @Operation(summary = "Create a lesson in a section")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lesson created"),
+            @ApiResponse(responseCode = "400", description = "Invalid lesson data"),
+            @ApiResponse(responseCode = "403", description = "Forbidden"),
+            @ApiResponse(responseCode = "404", description = "Section not found")
+    })
+    public ResponseEntity<DisplayLessonDto> createLessonInSection(
+            @PathVariable Long sectionId,
+            @RequestBody @Valid CreateLessonDto createLessonDto
+    ) {
+        return ResponseEntity.ok(lessonService.createLessonInSection(sectionId, createLessonDto));
+    }
+
 }
 

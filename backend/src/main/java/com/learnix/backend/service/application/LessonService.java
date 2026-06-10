@@ -14,5 +14,7 @@ public interface LessonService {
     DisplayLessonDto updateLesson(Long lessonId, UpdateLessonDto updateLessonDto);
 
     void deleteLesson(Long lessonId);
+
+    DisplayLessonDto createLessonInSection(Long sectionId, CreateLessonDto createLessonDto);
 }
 
