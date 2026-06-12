@@ -4,7 +4,7 @@ import { getRecentQuizAttemptsApi } from '@/api/quizAttempts.api'
 export const useRecentQuizAttempts = () => {
   return useQuery({
     queryKey: ['recent-quiz-attempts'],
-    queryFn: () => getRecentQuizAttemptsApi(),
+    queryFn: getRecentQuizAttemptsApi,
   })
 }
 

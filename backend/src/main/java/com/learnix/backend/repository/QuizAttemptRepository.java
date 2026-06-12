@@ -1,12 +1,11 @@
 package com.learnix.backend.repository;
 
 import com.learnix.backend.model.domain.QuizAttempt;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
-
 import java.util.List;
-import org.springframework.data.domain.Pageable;
 
 public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> {
     List<QuizAttempt> findByUserId(Long userId);

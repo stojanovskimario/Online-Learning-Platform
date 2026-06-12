@@ -7,6 +7,7 @@ import com.learnix.backend.model.domain.Quiz;
 import com.learnix.backend.model.domain.QuizAttempt;
 import com.learnix.backend.model.domain.User;
 import com.learnix.backend.model.dto.QuizAttemptResultDto;
+import com.learnix.backend.model.dto.QuizAttemptSummaryDto;
 import com.learnix.backend.model.dto.QuizAttemptSubmissionDto;
 import com.learnix.backend.model.exceptions.QuizAttemptLimitExceededException;
 import com.learnix.backend.model.exceptions.QuizNotFoundException;
@@ -18,6 +19,7 @@ import com.learnix.backend.repository.QuizAttemptRepository;
 import com.learnix.backend.repository.QuizRepository;
 import com.learnix.backend.repository.UserRepository;
 import com.learnix.backend.service.application.QuizAttemptService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -150,28 +152,19 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
     }
 
     @Override
-    public java.util.List<com.learnix.backend.model.dto.QuizAttemptSummaryDto> getRecentAttempts(Long userId, int limit) {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, limit);
-        java.util.List<QuizAttempt> attempts = quizAttemptRepository.findByUserIdOrderByAttemptedAtDesc(userId, pageable);
-        java.util.List<com.learnix.backend.model.dto.QuizAttemptSummaryDto> dtos = new java.util.ArrayList<>();
-        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        for (QuizAttempt a : attempts) {
-            String quizTitle = a.getQuiz() != null ? a.getQuiz().getTitle() : null;
-            String courseTitle = null;
-            if (a.getQuiz() != null && a.getQuiz().getLesson() != null && a.getQuiz().getLesson().getSection() != null
-                    && a.getQuiz().getLesson().getSection().getCourse() != null) {
-                courseTitle = a.getQuiz().getLesson().getSection().getCourse().getTitle();
-            }
-            dtos.add(new com.learnix.backend.model.dto.QuizAttemptSummaryDto(
-                    a.getId(),
-                    quizTitle,
-                    courseTitle,
-                    a.getScore() != null ? a.getScore() : 0,
-                    a.isPassed(),
-                    a.getAttemptedAt() != null ? a.getAttemptedAt().format(fmt) : null
-            ));
-        }
-        return dtos;
+    @Transactional(readOnly = true)
+    public List<QuizAttemptSummaryDto> getRecentAttempts(Long userId, int limit) {
+        return quizAttemptRepository.findByUserIdOrderByAttemptedAtDesc(userId, PageRequest.of(0, limit))
+                .stream()
+                .map(attempt -> new QuizAttemptSummaryDto(
+                        attempt.getId(),
+                        attempt.getQuiz().getTitle(),
+                        attempt.getQuiz().getLesson().getSection().getCourse().getTitle(),
+                        attempt.getScore(),
+                        attempt.isPassed(),
+                        attempt.getAttemptedAt().toString()
+                ))
+                .toList();
     }
 
     private void enforceAttemptLimit(Long userId, Long quizId) {

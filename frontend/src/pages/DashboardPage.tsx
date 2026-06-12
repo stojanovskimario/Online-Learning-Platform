@@ -42,8 +42,9 @@ const DashboardPage = () => {
     const completedCoursesCount = enrollmentProgress.filter(({ progress }) => (progress?.percentage ?? 0) >= 100).length
     const isDashboardDataLoading = isEnrollmentsLoading || isProgressLoading || isCourseLoading
     const hasDashboardDataError = isEnrollmentsError || hasProgressError || hasCourseError
-    const { data: certificates } = useCertificates()
+    const { data: certificates, isLoading: isCertificatesLoading } = useCertificates()
     const { data: recentAttempts, isLoading: isRecentAttemptsLoading } = useRecentQuizAttempts()
+    const certificateList = certificates ?? []
 
     const stats = [
         {
@@ -57,7 +58,11 @@ const DashboardPage = () => {
             sub: completedCoursesCount === 1 ? 'course done' : 'courses done',
         },
         { label: 'Quizzes Passed', value: '0', sub: 'avg score -' },
-        { label: 'Certificates', value: isDashboardDataLoading ? '...' : String(certificates?.length ?? 0), sub: (certificates?.length ?? 0) === 1 ? 'earned' : 'earned' },
+        {
+            label: 'Certificates',
+            value: isCertificatesLoading ? '...' : String(certificateList.length),
+            sub: certificateList.length === 1 ? 'certificate earned' : 'certificates earned',
+        },
     ]
     return (
         <AppLayout
@@ -187,23 +192,23 @@ const DashboardPage = () => {
                             </Link>
                         </div>
                                 <div>
-                                    {certificates == null ? (
+                                    {isCertificatesLoading ? (
                                         <div className="space-y-2">
                                             <div className="animate-pulse bg-white/5 rounded h-8 w-full" />
                                             <div className="animate-pulse bg-white/5 rounded h-8 w-full" />
                                         </div>
-                                    ) : certificates.length === 0 ? (
+                                    ) : certificateList.length === 0 ? (
                                         <div className="text-center py-6">
                                             <p className="text-3xl mb-2">Certificates</p>
                                             <p className="text-xs text-white/30">No certificates yet</p>
                                         </div>
                                     ) : (
                                         <div>
-                                            {certificates.slice(0, 3).map((c) => (
+                                            {certificateList.slice(0, 3).map((c) => (
                                                 <div key={c.id} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
                                                     <div className="min-w-0">
                                                         <div className="text-white text-sm font-medium truncate">{c.courseTitle}</div>
-                                                        <div className="text-white/40 text-xs">{new Date(c.issuedAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                                                        <div className="text-white/40 text-xs">{new Date(c.issuedAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                                                     </div>
                                                     <CheckCircle size={16} className="text-emerald-400 ml-4" />
                                                 </div>
@@ -226,14 +231,14 @@ const DashboardPage = () => {
                                     </div>
                                 ) : (
                                     <div>
-                                        {recentAttempts.slice(0, 3).map((a: any) => (
-                                            <div key={a.attemptId} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                                        {recentAttempts.slice(0, 3).map((attempt) => (
+                                            <div key={attempt.attemptId} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
                                                 <div className="min-w-0">
-                                                    <div className="text-white text-sm font-medium truncate">{a.quizTitle}</div>
-                                                    <div className="text-white/40 text-xs truncate">{a.courseTitle}</div>
+                                                    <div className="text-white text-sm font-medium truncate">{attempt.quizTitle}</div>
+                                                    <div className="text-white/40 text-xs truncate">{attempt.courseTitle}</div>
                                                 </div>
-                                                <div className={`text-xs font-semibold px-2 py-0.5 rounded-full ${a.passed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
-                                                    {a.score}%
+                                                <div className={`text-xs font-semibold px-2 py-0.5 rounded-full ${attempt.passed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                    {attempt.score}%
                                                 </div>
                                             </div>
                                         ))}

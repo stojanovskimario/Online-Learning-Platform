@@ -6,6 +6,7 @@ import com.learnix.backend.model.dto.CreateQuizDto;
 import com.learnix.backend.model.dto.DisplayQuestionDto;
 import com.learnix.backend.model.dto.DisplayQuizDto;
 import com.learnix.backend.model.dto.QuizAttemptResultDto;
+import com.learnix.backend.model.dto.QuizAttemptSummaryDto;
 import com.learnix.backend.model.dto.QuizAttemptSubmissionDto;
 import com.learnix.backend.service.application.QuizAttemptService;
 import com.learnix.backend.service.application.QuizManagementService;
@@ -27,6 +28,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -50,7 +53,7 @@ public class QuizController {
     @GetMapping("/quiz-attempts/recent")
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get recent quiz attempts for current user")
-    public ResponseEntity<java.util.List<com.learnix.backend.model.dto.QuizAttemptSummaryDto>> getRecentAttempts() {
+    public ResponseEntity<List<QuizAttemptSummaryDto>> getRecentAttempts() {
         return ResponseEntity.ok(quizAttemptService.getRecentAttempts(getCurrentUserId(), 5));
     }
 

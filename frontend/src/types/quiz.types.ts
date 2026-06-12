@@ -40,3 +40,12 @@ export interface QuizAttemptResult {
     passScore?: number
 }
 
+export interface QuizAttemptSummary {
+    attemptId: number
+    quizTitle: string
+    courseTitle: string
+    score: number
+    passed: boolean
+    attemptedAt: string
+}
+
