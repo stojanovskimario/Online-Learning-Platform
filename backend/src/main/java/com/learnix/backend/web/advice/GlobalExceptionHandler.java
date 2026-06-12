@@ -2,6 +2,7 @@ package com.learnix.backend.web.advice;
 
 import com.learnix.backend.model.dto.error.ApiErrorResponse;
 import com.learnix.backend.model.exceptions.CourseNotFoundException;
+import com.learnix.backend.model.exceptions.AiServiceException;
 import com.learnix.backend.model.exceptions.LessonNotFoundException;
 import com.learnix.backend.model.exceptions.LessonOrderConflictException;
 import com.learnix.backend.model.exceptions.QuestionHasAttemptsException;
@@ -63,6 +64,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleQuizAttemptLimit(QuizAttemptLimitExceededException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(new ApiErrorResponse(HttpStatus.TOO_MANY_REQUESTS.value(), ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(AiServiceException.class)
+    public ResponseEntity<ApiErrorResponse> handleAiService(AiServiceException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(new ApiErrorResponse(HttpStatus.BAD_GATEWAY.value(), ex.getMessage(), null));
     }
 
     @ExceptionHandler(RuntimeException.class)

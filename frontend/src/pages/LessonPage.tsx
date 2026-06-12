@@ -6,6 +6,7 @@ import { useCourseLessons } from '@/hooks/useCourseLessons'
 import { useCourseProgress } from '@/hooks/useCourseProgress'
 import { useLessonProgress } from '@/hooks/useLessonProgress'
 import { useCompleteLesson } from '@/hooks/useCompleteLesson'
+import LessonChat from '@/components/LessonChat'
 
 const LessonPage = () => {
     const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>()
@@ -90,80 +91,86 @@ const LessonPage = () => {
             )}
 
             {currentLesson && (
-                <div className="max-w-3xl">
-                    <div className="mb-6">
-                        <p className="text-xs uppercase tracking-widest text-white/25 mb-2">
-                            Lesson {currentLessonIndex + 1} of {lessons?.length}
-                        </p>
-                        <h1 className="text-2xl font-bold text-white">{currentLesson.title}</h1>
-                    </div>
-
-                    {currentLesson.videoUrl && (
-                        <div className="bg-[#13151f] border border-white/5 rounded-xl p-4 mb-6">
-                            <a
-                                href={currentLesson.videoUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                            >
-                                Open lesson video {'\u2192'}
-                            </a>
+                <div className="mx-auto grid w-full max-w-7xl gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+                    <div className="min-w-0">
+                        <div className="mb-6">
+                            <p className="text-xs uppercase tracking-widest text-white/25 mb-2">
+                                Lesson {currentLessonIndex + 1} of {lessons?.length}
+                            </p>
+                            <h1 className="text-2xl font-bold text-white">{currentLesson.title}</h1>
                         </div>
-                    )}
 
-                    <article className="bg-[#13151f] border border-white/5 rounded-xl p-4 whitespace-pre-wrap leading-7 text-sm text-white/70 sm:p-6">
-                        {currentLesson.content}
-                    </article>
-
-                    <div className="mt-6">
-                        <button
-                            onClick={() => completeLessonMutation.mutate()}
-                            disabled={
-                                isLessonProgressLoading ||
-                                lessonProgress?.completed ||
-                                completeLessonMutation.isPending
-                            }
-                            className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-                        >
-                            {isLessonProgressLoading
-                                ? 'Checking completion...'
-                                : lessonProgress?.completed
-                                    ? 'Completed'
-                                    : completeLessonMutation.isPending
-                                        ? 'Marking complete...'
-                                        : 'Mark as Complete'}
-                        </button>
-                        {completeLessonMutation.isError && (
-                            <p className="text-red-400 text-xs mt-2">Could not mark lesson complete. Please try again.</p>
+                        {currentLesson.videoUrl && (
+                            <div className="bg-[#13151f] border border-white/5 rounded-xl p-4 mb-6">
+                                <a
+                                    href={currentLesson.videoUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                                >
+                                    Open lesson video {'\u2192'}
+                                </a>
+                            </div>
                         )}
+
+                        <article className="bg-[#13151f] border border-white/5 rounded-xl p-4 whitespace-pre-wrap leading-7 text-sm text-white/70 sm:p-6">
+                            {currentLesson.content}
+                        </article>
+
+                        <div className="mt-6">
+                            <button
+                                onClick={() => completeLessonMutation.mutate()}
+                                disabled={
+                                    isLessonProgressLoading ||
+                                    lessonProgress?.completed ||
+                                    completeLessonMutation.isPending
+                                }
+                                className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                            >
+                                {isLessonProgressLoading
+                                    ? 'Checking completion...'
+                                    : lessonProgress?.completed
+                                        ? 'Completed'
+                                        : completeLessonMutation.isPending
+                                            ? 'Marking complete...'
+                                            : 'Mark as Complete'}
+                            </button>
+                            {completeLessonMutation.isError && (
+                                <p className="text-red-400 text-xs mt-2">Could not mark lesson complete. Please try again.</p>
+                            )}
+                        </div>
+
+                        <div className="flex flex-col gap-3 mt-6 sm:flex-row sm:items-center sm:justify-between">
+                            <button
+                                onClick={() => previousLesson && navigateToLesson(previousLesson.id)}
+                                disabled={!previousLesson}
+                                className="bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                            >
+                                {'\u2190'} Previous Lesson
+                            </button>
+                            {isFinalLesson ? (
+                                <button
+                                    onClick={() => navigate(`/courses/${courseId}/quiz`)}
+                                    disabled={!canTakeQuiz}
+                                    className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                                >
+                                    Take Quiz {'\u2192'}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => nextLesson && navigateToLesson(nextLesson.id)}
+                                    disabled={!nextLesson}
+                                    className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                                >
+                                    Next Lesson {'\u2192'}
+                                </button>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="flex flex-col gap-3 mt-6 sm:flex-row sm:items-center sm:justify-between">
-                        <button
-                            onClick={() => previousLesson && navigateToLesson(previousLesson.id)}
-                            disabled={!previousLesson}
-                            className="bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-                        >
-                            {'\u2190'} Previous Lesson
-                        </button>
-                        {isFinalLesson ? (
-                            <button
-                                onClick={() => navigate(`/courses/${courseId}/quiz`)}
-                                disabled={!canTakeQuiz}
-                                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-                            >
-                                Take Quiz {'\u2192'}
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => nextLesson && navigateToLesson(nextLesson.id)}
-                                disabled={!nextLesson}
-                                className="bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
-                            >
-                                Next Lesson {'\u2192'}
-                            </button>
-                        )}
-                    </div>
+                    <aside className="min-w-0 xl:sticky xl:top-0 xl:self-start">
+                        <LessonChat lessonId={currentLesson.id} />
+                    </aside>
                 </div>
             )}
         </AppLayout>
