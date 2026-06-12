@@ -149,6 +149,31 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
         );
     }
 
+    @Override
+    public java.util.List<com.learnix.backend.model.dto.QuizAttemptSummaryDto> getRecentAttempts(Long userId, int limit) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, limit);
+        java.util.List<QuizAttempt> attempts = quizAttemptRepository.findByUserIdOrderByAttemptedAtDesc(userId, pageable);
+        java.util.List<com.learnix.backend.model.dto.QuizAttemptSummaryDto> dtos = new java.util.ArrayList<>();
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        for (QuizAttempt a : attempts) {
+            String quizTitle = a.getQuiz() != null ? a.getQuiz().getTitle() : null;
+            String courseTitle = null;
+            if (a.getQuiz() != null && a.getQuiz().getLesson() != null && a.getQuiz().getLesson().getSection() != null
+                    && a.getQuiz().getLesson().getSection().getCourse() != null) {
+                courseTitle = a.getQuiz().getLesson().getSection().getCourse().getTitle();
+            }
+            dtos.add(new com.learnix.backend.model.dto.QuizAttemptSummaryDto(
+                    a.getId(),
+                    quizTitle,
+                    courseTitle,
+                    a.getScore() != null ? a.getScore() : 0,
+                    a.isPassed(),
+                    a.getAttemptedAt() != null ? a.getAttemptedAt().format(fmt) : null
+            ));
+        }
+        return dtos;
+    }
+
     private void enforceAttemptLimit(Long userId, Long quizId) {
         LocalDate today = LocalDate.now();
         LocalDateTime startOfDay = today.atStartOfDay();

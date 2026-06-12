@@ -47,6 +47,13 @@ public class QuizController {
         this.quizAttemptService = quizAttemptService;
     }
 
+    @GetMapping("/quiz-attempts/recent")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get recent quiz attempts for current user")
+    public ResponseEntity<java.util.List<com.learnix.backend.model.dto.QuizAttemptSummaryDto>> getRecentAttempts() {
+        return ResponseEntity.ok(quizAttemptService.getRecentAttempts(getCurrentUserId(), 5));
+    }
+
     @PostMapping("/lessons/{lessonId}/quiz")
     @PreAuthorize("hasRole('ADMIN') or hasRole('INSTRUCTOR')")
     @Operation(summary = "Create a quiz for a lesson", description = "Creates a quiz linked to the given lesson. Each lesson can have only one quiz.")

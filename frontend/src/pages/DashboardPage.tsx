@@ -9,6 +9,9 @@ import { useMyEnrollments } from '@/hooks/useMyEnrollments'
 import { useResetCourseProgress } from '@/hooks/useResetCourseProgress'
 import { getFirstIncompleteCourseLessonByCount } from '@/lib/courseLessons'
 import { clearStoredQuizAttemptResult } from '@/lib/quizAttemptStorage'
+import { useCertificates } from '@/hooks/useCertificates'
+import { useRecentQuizAttempts } from '@/hooks/useRecentQuizAttempts'
+import { CheckCircle } from 'lucide-react'
 const DashboardPage = () => {
     const { user } = useAuth()
     const navigate = useNavigate()
@@ -39,6 +42,9 @@ const DashboardPage = () => {
     const completedCoursesCount = enrollmentProgress.filter(({ progress }) => (progress?.percentage ?? 0) >= 100).length
     const isDashboardDataLoading = isEnrollmentsLoading || isProgressLoading || isCourseLoading
     const hasDashboardDataError = isEnrollmentsError || hasProgressError || hasCourseError
+    const { data: certificates } = useCertificates()
+    const { data: recentAttempts, isLoading: isRecentAttemptsLoading } = useRecentQuizAttempts()
+
     const stats = [
         {
             label: 'Enrolled Courses',
@@ -51,7 +57,7 @@ const DashboardPage = () => {
             sub: completedCoursesCount === 1 ? 'course done' : 'courses done',
         },
         { label: 'Quizzes Passed', value: '0', sub: 'avg score -' },
-        { label: 'Certificates', value: '0', sub: 'earned' },
+        { label: 'Certificates', value: isDashboardDataLoading ? '...' : String(certificates?.length ?? 0), sub: (certificates?.length ?? 0) === 1 ? 'earned' : 'earned' },
     ]
     return (
         <AppLayout
@@ -180,18 +186,60 @@ const DashboardPage = () => {
                                 View all
                             </Link>
                         </div>
-                        <div className="text-center py-6">
-                            <p className="text-3xl mb-2">Certificates</p>
-                            <p className="text-xs text-white/30">No certificates yet</p>
-                        </div>
+                                <div>
+                                    {certificates == null ? (
+                                        <div className="space-y-2">
+                                            <div className="animate-pulse bg-white/5 rounded h-8 w-full" />
+                                            <div className="animate-pulse bg-white/5 rounded h-8 w-full" />
+                                        </div>
+                                    ) : certificates.length === 0 ? (
+                                        <div className="text-center py-6">
+                                            <p className="text-3xl mb-2">Certificates</p>
+                                            <p className="text-xs text-white/30">No certificates yet</p>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            {certificates.slice(0, 3).map((c) => (
+                                                <div key={c.id} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                                                    <div className="min-w-0">
+                                                        <div className="text-white text-sm font-medium truncate">{c.courseTitle}</div>
+                                                        <div className="text-white/40 text-xs">{new Date(c.issuedAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                                                    </div>
+                                                    <CheckCircle size={16} className="text-emerald-400 ml-4" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                     </div>
-                    <div className="bg-[#13151f] border border-white/5 rounded-xl p-6">
-                        <h2 className="text-sm font-semibold text-white mb-4">Recent Quizzes</h2>
-                        <div className="text-center py-6">
-                            <p className="text-3xl mb-2">Quizzes</p>
-                            <p className="text-xs text-white/30">No quizzes taken yet</p>
-                        </div>
-                    </div>
+                            <div className="bg-[#13151f] border border-white/5 rounded-xl p-6">
+                                <h2 className="text-sm font-semibold text-white mb-4">Recent Quizzes</h2>
+                                {isRecentAttemptsLoading ? (
+                                    <div className="space-y-2">
+                                        <div className="animate-pulse bg-white/5 rounded h-8 w-full" />
+                                        <div className="animate-pulse bg-white/5 rounded h-8 w-full" />
+                                    </div>
+                                ) : !recentAttempts || recentAttempts.length === 0 ? (
+                                    <div className="text-center py-6">
+                                        <p className="text-3xl mb-2">Quizzes</p>
+                                        <p className="text-xs text-white/30">No quizzes taken yet</p>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        {recentAttempts.slice(0, 3).map((a: any) => (
+                                            <div key={a.attemptId} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                                                <div className="min-w-0">
+                                                    <div className="text-white text-sm font-medium truncate">{a.quizTitle}</div>
+                                                    <div className="text-white/40 text-xs truncate">{a.courseTitle}</div>
+                                                </div>
+                                                <div className={`text-xs font-semibold px-2 py-0.5 rounded-full ${a.passed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                    {a.score}%
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                 </div>
             </div>
             {user?.subscriptionTier === 'FREE' && (
