@@ -1,5 +1,6 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { Award } from 'lucide-react'
 
 interface AppSidebarProps {
     isOpen: boolean
@@ -17,7 +18,7 @@ const AppSidebar = ({ isOpen, onClose }: AppSidebarProps) => {
         { label: 'Progress', icon: '\u25d0', path: '/progress' },
         { label: 'Billing', icon: '\u24b8', path: '/billing' },
         { label: 'Quizzes', icon: '\u25c7', path: '/quizzes' },
-        { label: 'Certificates', icon: '\u25c9', path: '/certificates' },
+        ...(user ? [{ label: 'Certificates', icon: <Award size={16} />, path: '/certificates' }] : []),
         ...(user?.role === 'INSTRUCTOR' ? [{ label: 'Create Course', icon: '+', path: '/create-course' }] : []),
     ]
 

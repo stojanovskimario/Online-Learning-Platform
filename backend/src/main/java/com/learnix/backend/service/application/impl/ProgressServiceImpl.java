@@ -29,6 +29,7 @@ public class ProgressServiceImpl implements ProgressService {
     private final SectionRepository sectionRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final com.learnix.backend.service.application.CertificateService certificateService;
 
     public ProgressServiceImpl(
             LessonProgressRepository lessonProgressRepository,
@@ -36,12 +37,14 @@ public class ProgressServiceImpl implements ProgressService {
             SectionRepository sectionRepository,
             CourseRepository courseRepository,
             UserRepository userRepository
+            , com.learnix.backend.service.application.CertificateService certificateService
     ) {
         this.lessonProgressRepository = lessonProgressRepository;
         this.lessonRepository = lessonRepository;
         this.sectionRepository = sectionRepository;
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
+        this.certificateService = certificateService;
     }
 
     @Override
@@ -71,7 +74,31 @@ public class ProgressServiceImpl implements ProgressService {
                     return created;
                 });
 
-        return LessonProgressDto.from(lessonProgressRepository.save(lessonProgress));
+        LessonProgress saved = lessonProgressRepository.save(lessonProgress);
+
+        // Check course completion
+        Section section = lesson.getSection();
+        Long courseId = section.getCourse().getId();
+
+        List<Section> sections = sectionRepository.findByCourseIdOrderByOrderIndexAsc(courseId);
+        long totalLessons = 0;
+        long completedLessons = 0;
+        for (Section s : sections) {
+            List<Lesson> lessons = lessonRepository.findBySectionIdOrderByOrderIndexAsc(s.getId());
+            for (Lesson l : lessons) {
+                totalLessons++;
+                if (lessonProgressRepository.findByUserIdAndLessonId(userId, l.getId())
+                        .map(LessonProgress::isCompleted).orElse(false)) {
+                    completedLessons++;
+                }
+            }
+        }
+
+        if (totalLessons > 0 && completedLessons == totalLessons) {
+            certificateService.generateCertificate(userId, courseId);
+        }
+
+        return LessonProgressDto.from(saved);
     }
 
     @Override
