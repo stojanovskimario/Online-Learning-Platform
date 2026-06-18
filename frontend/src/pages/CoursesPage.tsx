@@ -1,15 +1,41 @@
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import AppLayout from '@/components/AppLayout'
 import { useCourses } from '@/hooks/useCourses'
+import { deleteCourseApi, publishCourseApi } from '@/api/courses.api'
+import type { RootState } from '@/store/store'
 
 const backendOrigin = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') ?? 'http://localhost:8080'
 
 const CoursesPage = () => {
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
+    const { user } = useSelector((state: RootState) => state.auth)
+    const isAdmin = user?.role === 'ADMIN'
+    const isInstructor = user?.role === 'INSTRUCTOR'
 
     const { data, isLoading, isError } = useCourses()
 
+    const deleteCourseMutation = useMutation({
+        mutationFn: deleteCourseApi,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['courses'] })
+        },
+    })
 
+    const publishCourseMutation = useMutation({
+        mutationFn: publishCourseApi,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['courses'] })
+        },
+    })
+
+    const handleDeleteCourse = (courseId: number, courseTitle: string) => {
+        if (confirm(`Delete course "${courseTitle}"?`)) {
+            deleteCourseMutation.mutate(courseId)
+        }
+    }
 
     return (
         <AppLayout
@@ -17,7 +43,9 @@ const CoursesPage = () => {
                 <header className="bg-[#13151f] border-b border-white/5 px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0">
                     <div>
                         <h1 className="text-lg font-semibold text-white">Explore Courses</h1>
-                        <p className="text-xs text-white/40">Browse and enrol in courses</p>
+                        <p className="text-xs text-white/40">
+                            {isAdmin ? 'Manage all courses' : isInstructor ? 'Manage your courses' : 'Browse and enrol in courses'}
+                        </p>
                     </div>
                 </header>
             }
@@ -51,17 +79,18 @@ const CoursesPage = () => {
                     {data && data.content.length > 0 && (
                         <>
                             <p className="text-xs text-white/30 mb-4">{data.totalElements} courses available</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {data.content.map((course) => {
                                     const thumbnailSrc = course.thumbnailUrl?.startsWith('/')
                                         ? `${backendOrigin}${course.thumbnailUrl}`
                                         : course.thumbnailUrl
+                                    const canManageCourse = isAdmin || (isInstructor && course.instructorId === user?.id)
 
                                     return (
                                         <div
                                             key={course.id}
                                             onClick={() => navigate(`/courses/${course.id}`)}
-                                            className="bg-[#13151f] border border-white/5 rounded-xl p-5 cursor-pointer hover:border-blue-500/30 hover:bg-white/[0.02] transition-all group"
+                                            className="group flex h-full cursor-pointer flex-col rounded-xl border border-white/5 bg-[#13151f] p-5 transition-all hover:border-blue-500/30 hover:bg-white/[0.02]"
                                         >
                                             <div className="h-32 bg-white/5 rounded-lg mb-4 flex items-center justify-center text-3xl overflow-hidden">
                                                 {thumbnailSrc ? (
@@ -82,9 +111,9 @@ const CoursesPage = () => {
                                                 )}
                                             </div>
 
-                                            <p className="text-xs text-white/40 mb-4 line-clamp-2">{course.description}</p>
+                                            <p className="mb-4 min-h-[2.5rem] text-xs text-white/40 line-clamp-2">{course.description}</p>
 
-                                            <div className="flex items-center justify-between">
+                                            <div className="mt-auto flex items-center justify-between">
                                                 <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded">
                                                     {course.category?.name ?? 'General'}
                                                 </span>
@@ -92,6 +121,45 @@ const CoursesPage = () => {
                                                     {course.price === 0 ? 'Free' : `$${course.price}`}
                                                 </span>
                                             </div>
+
+                                            {canManageCourse && (
+                                                <div className={`mt-4 grid gap-2 ${course.status === 'PUBLISHED' ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                                                    {course.status !== 'PUBLISHED' && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={(event) => {
+                                                                event.stopPropagation()
+                                                                publishCourseMutation.mutate(course.id)
+                                                            }}
+                                                            disabled={publishCourseMutation.isPending}
+                                                            className="text-xs bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 hover:border-green-500/40 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 rounded-lg transition-all"
+                                                        >
+                                                            Publish
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation()
+                                                            navigate(`/courses/${course.id}/edit`)
+                                                        }}
+                                                        className="text-xs bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/40 px-3 py-2 rounded-lg transition-all"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation()
+                                                            handleDeleteCourse(course.id, course.title)
+                                                        }}
+                                                        disabled={deleteCourseMutation.isPending}
+                                                        className="text-xs bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 rounded-lg transition-all"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     )
                                 })}

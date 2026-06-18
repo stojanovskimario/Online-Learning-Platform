@@ -46,6 +46,16 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public Page<Course> findByInstructorId(Long instructorId, Pageable pageable) {
+        return courseRepository.findByInstructor_Id(instructorId, pageable);
+    }
+
+    @Override
+    public Page<Course> findByInstructorIdAndCategoryId(Long instructorId, Long categoryId, Pageable pageable) {
+        return courseRepository.findByInstructor_IdAndCategoryId(instructorId, categoryId, pageable);
+    }
+
+    @Override
     public Page<Course> findByCategoryIdAndStatus(Long categoryId, CourseStatus status, Pageable pageable) {
         return courseRepository.findByCategoryIdAndStatus(categoryId, status, pageable);
     }

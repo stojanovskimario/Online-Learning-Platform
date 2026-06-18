@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children, allowedRoles }: Props) => {
     }
 
     if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-        return <Navigate to="/dashboard" replace />
+        return <Navigate to={user.role === 'STUDENT' ? '/dashboard' : '/courses'} replace />
     }
 
     return <>{children}</>

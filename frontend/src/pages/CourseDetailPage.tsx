@@ -1,11 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import AppLayout from '@/components/AppLayout'
 import { useCourse } from '@/hooks/useCourse'
 import { useEnrollInCourse } from '@/hooks/useEnrollInCourse'
 import { useEnrollmentStatus } from '@/hooks/useEnrollmentStatus'
 import { useCourseProgress } from '@/hooks/useCourseProgress'
+import { deleteCourseApi, publishCourseApi } from '@/api/courses.api'
 import { getFirstIncompleteCourseLessonByCount } from '@/lib/courseLessons'
 import type { RootState } from '@/store/store'
 
@@ -14,6 +16,7 @@ const backendOrigin = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') 
 const CourseDetailPage = () => {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
+    const queryClient = useQueryClient()
     const { user } = useSelector((state: RootState) => state.auth)
     const { data: course, isLoading, isError } = useCourse(id)
     const { data: isEnrolled, isLoading: isEnrollmentStatusLoading } = useEnrollmentStatus(id)
@@ -22,12 +25,36 @@ const CourseDetailPage = () => {
     const isPremiumUser = user?.subscriptionTier === 'PREMIUM_MONTHLY' || user?.subscriptionTier === 'PREMIUM_ANNUAL'
     const premiumCourseUnlocked = !!course?.isPremium && isPremiumUser
     const canEnrollInCourse = !course?.isPremium || isPremiumUser
-    const isInstructorOrAdmin = user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN'
+    const isInstructor = user?.role === 'INSTRUCTOR'
+    const isAdmin = user?.role === 'ADMIN'
+    const canManageCourse = !!course && (isAdmin || (isInstructor && course.instructorId === user?.id))
+
+    const deleteCourseMutation = useMutation({
+        mutationFn: deleteCourseApi,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['courses'] })
+            navigate('/courses')
+        },
+    })
+
+    const publishCourseMutation = useMutation({
+        mutationFn: publishCourseApi,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['courses'] })
+            await queryClient.invalidateQueries({ queryKey: ['course', id] })
+        },
+    })
 
     const handleEnroll = () => {
         enrollMutation.mutate(undefined, {
             onSuccess: () => navigate('/dashboard'),
         })
+    }
+
+    const handleDeleteCourse = () => {
+        if (course && confirm(`Delete course "${course.title}"?`)) {
+            deleteCourseMutation.mutate(course.id)
+        }
     }
 
     const totalLessons = course?.sections?.reduce(
@@ -42,6 +69,38 @@ const CourseDetailPage = () => {
         : course?.thumbnailUrl
 
     const renderEnrollmentAction = () => {
+        if (canManageCourse) {
+            return (
+                <div className={`grid gap-2 ${course.status === 'PUBLISHED' ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                    {course.status !== 'PUBLISHED' && (
+                        <button
+                            type="button"
+                            onClick={() => publishCourseMutation.mutate(course.id)}
+                            disabled={publishCourseMutation.isPending}
+                            className="bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20 hover:border-green-500/40 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium py-2.5 rounded-lg transition-all"
+                        >
+                            {publishCourseMutation.isPending ? 'Publishing...' : 'Publish'}
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => navigate(`/courses/${id}/edit`)}
+                        className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/40 text-sm font-medium py-2.5 rounded-lg transition-all"
+                    >
+                        Edit
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleDeleteCourse}
+                        disabled={deleteCourseMutation.isPending}
+                        className="bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium py-2.5 rounded-lg transition-all"
+                    >
+                        {deleteCourseMutation.isPending ? 'Deleting...' : 'Delete'}
+                    </button>
+                </div>
+            )
+        }
+
         if (isEnrollmentStatusLoading) {
             return (
                 <button
@@ -140,14 +199,6 @@ const CourseDetailPage = () => {
                             </div>
                             <div className="flex items-start justify-between gap-4 mb-2">
                                 <h1 className="text-2xl font-bold text-white">{course.title}</h1>
-                                {isInstructorOrAdmin && (
-                                    <button
-                                        onClick={() => navigate(`/courses/${id}/edit`)}
-                                        className="flex-shrink-0 flex items-center gap-1.5 text-xs bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 hover:border-blue-500/40 px-3 py-1.5 rounded-lg transition-all"
-                                    >
-                                        ✎ Edit Course
-                                    </button>
-                                )}
                             </div>
                             <p className="text-white/50 text-sm leading-relaxed">{course.description}</p>
                         </div>
@@ -160,16 +211,16 @@ const CourseDetailPage = () => {
                                 {totalLessons} lessons · {course.sections?.length ?? 0} sections
                             </p>
                             {renderEnrollmentAction()}
-                            {course.isPremium && !isPremiumUser && !isEnrolled && (
+                            {course.isPremium && !canManageCourse && !isPremiumUser && !isEnrolled && (
                                 <p className="text-white/30 text-xs mt-2">Upgrade to Premium to access this course.</p>
                             )}
-                            {enrollMutation.isError && (
+                            {enrollMutation.isError && !canManageCourse && (
                                 <p className="text-red-400 text-xs mt-2">{enrollmentErrorMessage}</p>
                             )}
                         </div>
                     </div>
 
-                    {isEnrolled && (
+                    {isEnrolled && !canManageCourse && (
                         <div className="bg-[#13151f] border border-white/5 rounded-xl p-5 mb-6">
                             <div className="flex flex-col gap-2 mb-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                                 <div>

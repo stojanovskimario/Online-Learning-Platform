@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPasswordHash(passwordEncoder.encode(dto.password()));
         user.setFirstName(dto.firstName());
         user.setLastName(dto.lastName());
-        user.setRole(UserRole.STUDENT);
+        user.setRole(resolveRegistrationRole(dto.role()));
         user.setSubscriptionTier(SubscriptionTier.FREE);
         user.setAiMessagesToday(0);
 
@@ -77,6 +77,18 @@ public class AuthServiceImpl implements AuthService {
 
     private String normalizeUsername(String username) {
         return username == null ? null : username.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private UserRole resolveRegistrationRole(UserRole requestedRole) {
+        if (requestedRole == null) {
+            return UserRole.STUDENT;
+        }
+
+        if (requestedRole == UserRole.STUDENT || requestedRole == UserRole.INSTRUCTOR) {
+            return requestedRole;
+        }
+
+        throw new IllegalArgumentException("Invalid registration role.");
     }
 }
 

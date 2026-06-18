@@ -11,7 +11,7 @@ const AppSidebar = ({ isOpen, onClose }: AppSidebarProps) => {
     const { user, logoutUser } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
-    const navItems = [
+    const defaultNavItems = [
         { label: 'Dashboard', icon: '\u229e', path: '/dashboard' },
         { label: 'My Courses', icon: '\u25ce', path: '/courses/my' },
         { label: 'Explore', icon: '\u25c8', path: '/courses' },
@@ -21,6 +21,14 @@ const AppSidebar = ({ isOpen, onClose }: AppSidebarProps) => {
         ...(user ? [{ label: 'Certificates', icon: <Award size={16} />, path: '/certificates' }] : []),
         ...(user?.role === 'INSTRUCTOR' ? [{ label: 'Create Course', icon: '+', path: '/create-course' }] : []),
     ]
+    const navItems = user?.role === 'ADMIN'
+        ? [{ label: 'All Courses', icon: '\u25c8', path: '/courses' }]
+        : user?.role === 'INSTRUCTOR'
+            ? [
+                { label: 'My Courses', icon: '\u25c8', path: '/courses' },
+                { label: 'Create Course', icon: '+', path: '/create-course' },
+            ]
+            : defaultNavItems
 
     const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || '?'
 

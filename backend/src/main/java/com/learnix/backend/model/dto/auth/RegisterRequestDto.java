@@ -1,5 +1,6 @@
 package com.learnix.backend.model.dto.auth;
 
+import com.learnix.backend.model.enums.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -21,7 +22,9 @@ public record RegisterRequestDto(
         String firstName,
 
         @Size(max = 255, message = "Last name must be up to 255 characters.")
-        String lastName
+        String lastName,
+
+        UserRole role
 ) {
 }
 

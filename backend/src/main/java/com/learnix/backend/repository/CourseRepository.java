@@ -14,6 +14,10 @@ import java.util.Optional;
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByInstructor_Id(Long instructorId);
 
+    Page<Course> findByInstructor_Id(Long instructorId, Pageable pageable);
+
+    Page<Course> findByInstructor_IdAndCategoryId(Long instructorId, Long categoryId, Pageable pageable);
+
     List<Course> findByCategoryId(Long categoryId);
 
     List<Course> findByStatus(CourseStatus status);

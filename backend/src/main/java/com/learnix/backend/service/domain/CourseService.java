@@ -19,6 +19,10 @@ public interface CourseService {
 
     Page<Course> findByCategoryId(Long categoryId, Pageable pageable);
 
+    Page<Course> findByInstructorId(Long instructorId, Pageable pageable);
+
+    Page<Course> findByInstructorIdAndCategoryId(Long instructorId, Long categoryId, Pageable pageable);
+
     Page<Course> findByCategoryIdAndStatus(Long categoryId, CourseStatus status, Pageable pageable);
 
     Optional<Course> findById(Long id);

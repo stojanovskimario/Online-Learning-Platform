@@ -16,3 +16,8 @@ export const publishCourseApi = (id: number) =>
     axiosClient
         .put<Course>(`/api/courses/${id}/publish`)
         .then((res) => res.data)
+
+export const deleteCourseApi = (id: number) =>
+    axiosClient
+        .delete<Course>(`/api/courses/${id}/delete`)
+        .then((res) => res.data)

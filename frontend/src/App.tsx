@@ -25,7 +25,7 @@ const App = () => {
                 <Route
                     path="/dashboard"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <DashboardPage />
                         </ProtectedRoute>
                     }
@@ -41,7 +41,7 @@ const App = () => {
                 <Route
                     path="/courses/my"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <MyCoursesPage />
                         </ProtectedRoute>
                     }
@@ -57,7 +57,7 @@ const App = () => {
                 <Route
                     path="/courses/:courseId/lessons/:lessonId"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <LessonPage />
                         </ProtectedRoute>
                     }
@@ -65,7 +65,7 @@ const App = () => {
                 <Route
                     path="/courses/:courseId/quiz"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <QuizPage />
                         </ProtectedRoute>
                     }
@@ -73,7 +73,7 @@ const App = () => {
                 <Route
                     path="/courses/:courseId/quiz/result"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <QuizResultPage />
                         </ProtectedRoute>
                     }
@@ -81,7 +81,7 @@ const App = () => {
                 <Route
                     path="/courses/:courseId/lessons/:lessonId/quiz"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <QuizPage />
                         </ProtectedRoute>
                     }
@@ -89,7 +89,7 @@ const App = () => {
                 <Route
                     path="/courses/:courseId/lessons/:lessonId/quiz/result"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <QuizResultPage />
                         </ProtectedRoute>
                     }
@@ -97,7 +97,7 @@ const App = () => {
                 <Route
                     path="/progress"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <ProgressPage />
                         </ProtectedRoute>
                     }
@@ -105,7 +105,7 @@ const App = () => {
                 <Route
                     path="/billing"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <BillingPage />
                         </ProtectedRoute>
                     }
@@ -113,7 +113,7 @@ const App = () => {
                 <Route
                     path="/certificates"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <CertificatesPage />
                         </ProtectedRoute>
                     }
@@ -129,7 +129,7 @@ const App = () => {
                 <Route
                     path="/quizzes"
                     element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={['STUDENT']}>
                             <QuizzesPage />
                         </ProtectedRoute>
                     }

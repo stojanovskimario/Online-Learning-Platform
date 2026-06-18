@@ -13,6 +13,7 @@ const schema = z.object({
     lastName: z.string().min(1, 'Last name is required'),
     username: z.string().min(3, 'Username must be at least 3 characters'),
     email: z.string().email('Invalid email'),
+    role: z.enum(['STUDENT', 'INSTRUCTOR']),
     password: z
         .string()
         .min(8, 'Password must be at least 8 characters')
@@ -28,6 +29,9 @@ const RegisterPage = () => {
 
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
         resolver: zodResolver(schema),
+        defaultValues: {
+            role: 'STUDENT',
+        },
     })
 
     const mutation = useMutation({
@@ -115,6 +119,18 @@ const RegisterPage = () => {
                                 className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-blue-500/50 transition-all"
                             />
                             {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-medium text-white/50 mb-1.5">Role</label>
+                            <select
+                                {...register('role')}
+                                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-all"
+                            >
+                                <option value="STUDENT" className="bg-[#13151f]">Student</option>
+                                <option value="INSTRUCTOR" className="bg-[#13151f]">Instructor</option>
+                            </select>
+                            {errors.role && <p className="text-red-400 text-xs mt-1">{errors.role.message}</p>}
                         </div>
 
                         <div>

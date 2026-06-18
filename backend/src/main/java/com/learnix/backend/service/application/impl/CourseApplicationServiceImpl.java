@@ -1,6 +1,7 @@
 package com.learnix.backend.service.application.impl;
 
 import com.learnix.backend.model.domain.Category;
+import com.learnix.backend.model.domain.Course;
 import com.learnix.backend.model.domain.User;
 import com.learnix.backend.model.dto.CreateCourseDto;
 import com.learnix.backend.model.dto.DisplayCourseDto;
@@ -39,9 +40,15 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
 
     @Override
     public Page<DisplayCourseDto> findAll(Pageable pageable, Long categoryId) {
-        return canViewDraftCourses()
-                ? findAllForPrivilegedUser(pageable, categoryId)
-                : findAllForStandardUser(pageable, categoryId);
+        if (isAdmin()) {
+            return findAllForAdmin(pageable, categoryId);
+        }
+
+        if (isInstructor()) {
+            return findAllForInstructor(pageable, categoryId);
+        }
+
+        return findAllForStandardUser(pageable, categoryId);
     }
 
     @Override
@@ -49,7 +56,7 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
     public Optional<DisplayCourseDto> findById(Long id) {
         return courseService
                 .findById(id)
-                .filter(course -> canViewDraftCourses() || CourseStatus.PUBLISHED.equals(course.getStatus()))
+                .filter(this::canViewCourse)
                 .map(DisplayCourseDto::from);
     }
 
@@ -68,29 +75,40 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
                 .findById(createCourseDto.categoryId())
                 .orElseThrow(() -> new CategoryNotFoundException(createCourseDto.categoryId()));
         User instructor = getCurrentUser();
-        return courseService
-                .update(id, createCourseDto.toCourse(category, instructor))
+        return courseService.findById(id)
+                .filter(this::canManageCourse)
+                .flatMap(course -> courseService.update(id, createCourseDto.toCourse(category, instructor)))
                 .map(DisplayCourseDto::from);
     }
 
     @Override
     public Optional<DisplayCourseDto> publish(Long id) {
-        return courseService
-                .publish(id)
+        return courseService.findById(id)
+                .filter(this::canManageCourse)
+                .flatMap(course -> courseService.publish(id))
                 .map(DisplayCourseDto::from);
     }
 
     @Override
     public Optional<DisplayCourseDto> deleteById(Long id) {
-        return courseService
-                .deleteById(id)
+        return courseService.findById(id)
+                .filter(this::canManageCourse)
+                .flatMap(course -> courseService.deleteById(id))
                 .map(DisplayCourseDto::from);
     }
 
-    private Page<DisplayCourseDto> findAllForPrivilegedUser(Pageable pageable, Long categoryId) {
+    private Page<DisplayCourseDto> findAllForAdmin(Pageable pageable, Long categoryId) {
         return (categoryId == null
                 ? courseService.findAll(pageable)
                 : courseService.findByCategoryId(categoryId, pageable))
+                .map(DisplayCourseDto::from);
+    }
+
+    private Page<DisplayCourseDto> findAllForInstructor(Pageable pageable, Long categoryId) {
+        Long instructorId = getCurrentUser().getId();
+        return (categoryId == null
+                ? courseService.findByInstructorId(instructorId, pageable)
+                : courseService.findByInstructorIdAndCategoryId(instructorId, categoryId, pageable))
                 .map(DisplayCourseDto::from);
     }
 
@@ -101,8 +119,30 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
                 .map(DisplayCourseDto::from);
     }
 
-    private boolean canViewDraftCourses() {
-        return hasRole("ROLE_ADMIN") || hasRole("ROLE_INSTRUCTOR");
+    private boolean canViewCourse(Course course) {
+        return isAdmin()
+                || isCourseInstructor(course)
+                || CourseStatus.PUBLISHED.equals(course.getStatus());
+    }
+
+    private boolean canManageCourse(Course course) {
+        return isAdmin() || isCourseInstructor(course);
+    }
+
+    private boolean isCourseInstructor(Course course) {
+        User currentUser = getCurrentUserOrNull();
+        return currentUser != null
+                && course.getInstructor() != null
+                && course.getInstructor().getId().equals(currentUser.getId())
+                && isInstructor();
+    }
+
+    private boolean isAdmin() {
+        return hasRole("ROLE_ADMIN");
+    }
+
+    private boolean isInstructor() {
+        return hasRole("ROLE_INSTRUCTOR");
     }
 
     private boolean hasRole(String role) {
@@ -112,10 +152,18 @@ public class CourseApplicationServiceImpl implements CourseApplicationService {
     }
 
     private User getCurrentUser() {
+        User currentUser = getCurrentUserOrNull();
+        if (currentUser != null) {
+            return currentUser;
+        }
+        throw new RuntimeException("User not authenticated");
+    }
+
+    private User getCurrentUserOrNull() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof User user) {
             return user;
         }
-        throw new RuntimeException("User not authenticated");
+        return null;
     }
 }
