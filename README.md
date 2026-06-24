@@ -2,6 +2,10 @@
 
 Learnix is a web-based learning platform that allows users to explore, enroll in, and manage online courses.
 
+## Demo
+
+Demo Video: https://www.youtube.com/watch?v=NYSwEs40i28
+
 ## Developed By
 
 - Mario Spasovski 233009
@@ -36,7 +40,7 @@ The application uses Google Gemini AI. Add the following variables in your backe
 
 ```env
 GOOGLE_AI_API_KEY=your_google_ai_api_key
-GOOGLE_AI_MODEL=your_model_name
+GOOGLE_AI_MODEL=gemini-2.5-flash
 ```
 
 These are used in the application via:
@@ -202,7 +206,3 @@ Name: Any value
 
 5. Complete the payment.
 6. Verify that webhook events are received in the Stripe CLI terminal.
-
-## Demo
-
-Demo Video: https://www.youtube.com/watch?v=NYSwEs40i28
